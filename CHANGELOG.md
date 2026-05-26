@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Add `dev-flow-intent` as the master-loaded intent classifier for debugging, feature, change-adjustment, review, UI/UX, status-recovery, and question routes.
+- Add focused route skills for `dev-flow-debugging`, `dev-flow-ui-ux`, and `dev-flow-review`.
+- Add routing eval prompts in `evals/evals.json`.
+
+### Changed
+
+- Update `dev-flow-master` to remain the entry controller while delegating intent classification to `dev-flow-intent`.
+- Show the default multi-agent/subagent execution mode at Phase 2 Gate after orchestration and Git checks, with main-agent serial fallback/override.
+- Clarify the skill reuse policy: call Superpowers workflows directly when available, and absorb optional marketplace/local skill patterns without hard dependencies.
+- Update installer doctor checks, command docs, plugin metadata, and public docs for the new route skills.
+
 ## [0.1.9] - 2026-04-27
 
 ### Changed

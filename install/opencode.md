@@ -36,6 +36,10 @@ dev-flow doctor --global
     dev-flow.md
   skills/
     dev-flow-master/
+    dev-flow-intent/
+    dev-flow-debugging/
+    dev-flow-ui-ux/
+    dev-flow-review/
     dev-flow-planning/
     dev-flow-execution/
     dev-flow-git/
@@ -54,6 +58,10 @@ The command is intentionally thin. It enters `dev-flow-master`, which owns routi
 
 ```text
 .opencode/skills/dev-flow-master/
+.opencode/skills/dev-flow-intent/
+.opencode/skills/dev-flow-debugging/
+.opencode/skills/dev-flow-ui-ux/
+.opencode/skills/dev-flow-review/
 .opencode/skills/dev-flow-planning/
 .opencode/skills/dev-flow-execution/
 .opencode/skills/dev-flow-git/

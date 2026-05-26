@@ -172,6 +172,10 @@ async function doctor() {
   const required = [
     'command/dev-flow.md',
     'skills/dev-flow-master/SKILL.md',
+    'skills/dev-flow-intent/SKILL.md',
+    'skills/dev-flow-debugging/SKILL.md',
+    'skills/dev-flow-ui-ux/SKILL.md',
+    'skills/dev-flow-review/SKILL.md',
     'skills/dev-flow-planning/SKILL.md',
     'skills/dev-flow-execution/SKILL.md',
     'skills/dev-flow-git/SKILL.md',
@@ -264,6 +268,10 @@ async function doctorCodex() {
   const commandTarget = codexCommandTarget();
   const required = [
     'dev-flow-master/SKILL.md',
+    'dev-flow-intent/SKILL.md',
+    'dev-flow-debugging/SKILL.md',
+    'dev-flow-ui-ux/SKILL.md',
+    'dev-flow-review/SKILL.md',
     'dev-flow-planning/SKILL.md',
     'dev-flow-execution/SKILL.md',
     'dev-flow-git/SKILL.md',

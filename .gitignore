@@ -3,3 +3,4 @@ node_modules/
 .DS_Store
 dev-flow-manifest.json
 harness/
+tk8620_ai_devkit/

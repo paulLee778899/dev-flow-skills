@@ -7,6 +7,8 @@ description: Use when dev-flow execution batches are complete and the main agent
 
 Owns final acceptance after all DAG batches are complete, deferred, or dynamically replanned.
 
+Use `superpowers:verification-before-completion` when available before claiming the workflow is complete, fixed, passing, or ready. Dev-flow acceptance still owns the final delivery report and readiness decision.
+
 ## Inputs
 
 Read and reconcile:

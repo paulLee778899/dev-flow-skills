@@ -2,9 +2,21 @@
 
 Dev Flow Skills splits the development flow into focused skills.
 
+Dev-flow owns routing, gates, persisted artifacts, and evidence. It directly reuses mature Superpowers workflows when available, and absorbs useful patterns from other installed skills without making them required dependencies.
+
 ## Phase 0: Master
 
-`dev-flow-master` classifies the request, selects the path, checks gates, and determines which focused skill owns the next stage.
+`dev-flow-master` is the entry controller. It loads `dev-flow-intent`, selects the final route, checks gates, and determines which focused skill owns the next stage.
+
+## Intent Routing
+
+`dev-flow-intent` classifies the user's request as debugging, feature, change-adjustment, review, UI/UX, status-recovery, or question. It emits `intent_decided`; only `dev-flow-master` can turn that into `routing_decided`.
+
+Focused routes:
+
+- `dev-flow-debugging`: reproduce failures, collect evidence, identify root cause, and recommend fix/verification path.
+- `dev-flow-ui-ux`: handle user-facing layout, interaction, responsive, accessibility, and browser-rendered verification concerns.
+- `dev-flow-review`: inspect code or plans in read-first mode and report findings before any fixes.
 
 ## Phase 1: Planning
 
@@ -13,6 +25,8 @@ Dev Flow Skills splits the development flow into focused skills.
 ## Phase 2: Git safety
 
 `dev-flow-git` chooses the correct isolation and side-effect model: worktree, branch, shared working tree, patch-ready mode, PR mode, rollback, or conflict handling.
+
+At Phase 2 Gate, the master presents orchestration results, Git checks, and the default execution mode. The default is multi-agent/subagent execution governed by task batches, agent cap, Git isolation, and writer limits; user approval accepts that mode unless they override it to main-agent serial execution.
 
 ## Phase 3: Execution
 

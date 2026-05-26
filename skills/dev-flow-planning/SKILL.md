@@ -118,6 +118,8 @@ If both are plausible and document shape materially changes, ask one short clari
 
 ### Brainstorming Handoff
 
+**REQUIRED SUB-SKILL:** Use `superpowers:brainstorming` when available for creative feature shaping, UI concepts, new workflows, or ambiguous behavior changes before implementation planning. Dev-flow still owns the persisted four-document output, review gates, task orchestration, and test matrix.
+
 Before drafting, the handoff must cover:
 
 - background / goals
@@ -127,6 +129,8 @@ Before drafting, the handoff must cover:
 - testing concerns
 
 Brainstorming is preparation, not a substitute for persisted documents.
+
+When converting approved requirements into implementation tasks, use the task-decomposition patterns from `superpowers:writing-plans` when available. Do not replace dev-flow's canonical `task-orchestration.md` or Executable Test Matrix with a superpowers plan file; adapt the useful task granularity, file-scope, TDD, and verification patterns into dev-flow artifacts.
 
 ### Review Mode
 

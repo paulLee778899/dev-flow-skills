@@ -35,6 +35,8 @@ Most coding-agent failures are workflow failures:
 
 Dev Flow Skills adds gates, handoffs, runtime state, and final acceptance checks so the agent keeps moving without skipping the decisions that must remain user-owned.
 
+The workflow reuses mature installed skills instead of copying every method into dev-flow. Superpowers workflows are called directly when available, while other installed or marketplace skills are treated as optional sources of good handling patterns.
+
 ## Quick start
 
 ### Recommended: install from npm
@@ -108,7 +110,11 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 
 | Skill | Responsibility |
 | --- | --- |
-| `dev-flow-master` | Entry routing, classification, phase gates, and recovery signals |
+| `dev-flow-master` | Entry controller, final route selection, phase gates, and recovery signals |
+| `dev-flow-intent` | Intent classification for debugging, feature, change-adjustment, review, UI/UX, status recovery, and questions |
+| `dev-flow-debugging` | Root-cause-first debugging route and regression evidence |
+| `dev-flow-ui-ux` | UI/UX route with browser, responsive, interaction, and visual verification expectations |
+| `dev-flow-review` | Read-first review route with findings, risks, and test gaps |
 | `dev-flow-planning` | Clarification before docs, formal planning docs, task DAG, and test matrix |
 | `dev-flow-execution` | Continuous execution, task settlement, dynamic replanning, and runtime state |
 | `dev-flow-git` | Worktree, shared-working-tree, branch, PR, patch, rollback, and conflict safety |
@@ -120,15 +126,19 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 User: /dev-flow 给订单后台增加退款审批流，完整走 dev flow
 
 Agent:
-1. Classifies the work as governed medium/heavy work.
-2. Enters planning mode.
-3. Asks required clarification questions before writing documents.
-4. Writes requirement/design/test documents after user confirmation.
-5. Builds task orchestration and an executable test matrix.
-6. Selects a Git strategy.
-7. Executes continuously until all planned tasks settle.
-8. Replans if requirements change or execution invalidates the plan.
-9. Runs final acceptance and writes delivery evidence.
+1. Enters `dev-flow-master`.
+2. Loads `dev-flow-intent` and classifies the task type.
+3. Routes debugging, UI/UX, and review requests to focused protocols when appropriate.
+4. Classifies feature/change work as lightweight, medium, or heavyweight.
+5. Enters planning mode when governed planning is required.
+6. Asks required clarification questions before writing documents.
+7. Writes requirement/design/test documents after user confirmation.
+8. Builds task orchestration and an executable test matrix.
+9. Selects a Git strategy.
+10. Shows the default multi-agent/subagent execution mode at Phase 2 Gate, after orchestration and Git checks.
+11. Executes continuously until all planned tasks settle.
+12. Replans if requirements change or execution invalidates the plan.
+13. Runs final acceptance and writes delivery evidence.
 ```
 
 ## Generated artifacts
@@ -160,6 +170,7 @@ Platform-specific commands are documented in the platform guides. Use `--dry-run
 ## Safety model
 
 - User confirmation is required before starting formal planning documents when clarification is incomplete.
+- Phase 2 Gate shows the default multi-agent/subagent execution mode before implementation starts; users may override it to main-agent serial execution.
 - Requirement changes during execution must return to planning before code changes continue.
 - Shared working-tree writes must be serialized.
 - Parallel no-worktree mode should use patch generation plus main-agent serial apply.

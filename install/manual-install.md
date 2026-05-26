@@ -19,6 +19,8 @@ This installs files into:
   skills/dev-flow-*/
 ```
 
+The installed skills include the entry controller (`dev-flow-master`), intent routing (`dev-flow-intent`), focused routes for debugging/UI/UX/review, and the governed planning/execution/Git/acceptance skills.
+
 Verify:
 
 ```bash

@@ -21,6 +21,16 @@ If `shared-working-tree serial agent mode` is selected by `dev-flow-git`, writer
 
 If `shared-worktree patch mode` is selected, analysis/patch-producing agents may run up to the normal agent cap, but shared working-tree writes still have writer cap 1. The main agent applies patch outputs serially.
 
+## Default Execution Actor
+
+After Phase 2 Gate is approved, execute with multi-agent/subagent dispatch by default. The main agent remains the coordinator: it dispatches tasks, enforces Git and side-effect boundaries, verifies done signals, reconciles progress, and integrates results.
+
+**REQUIRED SUB-SKILL:** Use `superpowers:subagent-driven-development` when available for independent task execution in the current session. Use `superpowers:dispatching-parallel-agents` when available for independent sidecar analysis or verification. If those skills are unavailable, follow the fallback execution rules in this skill.
+
+Use task batches, dependency order, agent cap, and the `git_safe` writer limit to decide whether tasks can run in parallel. If parallel writes are unsafe, automatically use serial subagent execution, shared-worktree patch mode, or main-agent serial execution. If the user explicitly requested main-agent-only serial work at Phase 2 Gate, follow that override.
+
+If subagent dispatch is unavailable in the current platform, continue with main-agent serial execution using the same task/test contract and record the fallback in `progress.md` and the final delivery report.
+
 ## Runtime Orchestration State
 
 During Phase 3, maintain an in-memory Runtime Orchestration State derived from:
@@ -40,6 +50,7 @@ Track at least:
 - execution batches and sub-waves
 - active Executable Test Matrix
 - Git isolation and integration mode
+- execution actor mode and any fallback
 - fallback mode, if any
 - last known artifact revision or update summary
 
@@ -183,6 +194,8 @@ Each executing agent must:
 - measure performance when performance acceptance criteria exist
 - report completion only when required tests pass, diagnostics are clean, acceptance criteria are met, and done-signal evidence is complete
 
+Before claiming a task, batch, or full workflow is complete, use `superpowers:verification-before-completion` when available. If unavailable, run the equivalent evidence-before-claim gate: identify the proving command or browser evidence, run it fresh, read the output, and report only what the evidence supports.
+
 ## Failure Handling
 
 If any task settled with `final_failed` or `final_blocked`:
@@ -297,7 +310,7 @@ When gate re-entry is not required, update artifacts and progress, announce brie
 ## Capability Fallback
 
 - If `superpowers:test-driven-development` is unavailable, run equivalent TDD: failing test first, minimal implementation, re-run tests, refactor after green.
-- If sub-agent dispatch is unavailable, main agent may execute DAG serially with the same task/test contract.
+- If sub-agent dispatch is unavailable, main agent may execute DAG serially with the same task/test contract, and must record the fallback.
 - If PR/remotes/permissions are unavailable, only Git integration falls back through `dev-flow-git`; do not skip implementation, diagnostics, tests, review/self-check, or delivery reporting.
 
 ## Progress File

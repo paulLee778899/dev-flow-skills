@@ -1,14 +1,18 @@
 ---
-description: Enter the governed development flow through dev-flow-master
+description: Enter the intent-routed dev-flow system through dev-flow-master
 ---
 
-Enter the governed development flow.
+Enter the intent-routed dev-flow system.
 
 Use `dev-flow-master` as the top-level controller for deciding:
 
+- what the user's intent is through `dev-flow-intent`
+- whether this is debugging, feature work, change-adjustment, review, UI/UX, status recovery, or a question
 - whether the request should use the lightweight opsx artifact path or the governed document path
+- whether a focused skill such as `dev-flow-debugging`, `dev-flow-ui-ux`, or `dev-flow-review` owns the next step
 - when `superpowers brainstorming` must happen
 - how the four Chinese planning docs should be governed
+- that Phase 2 Gate must show the default multi-agent/subagent execution mode after orchestration and Git checks
 - when a stage is actually ready to be reported complete
 - which focused `dev-flow-*` sub-skill owns the current stage
 
@@ -32,12 +36,14 @@ It should:
 
 1. Read the user's current request or context.
 2. Enter the `dev-flow-master` skill.
-3. Let that skill decide the next governed step and load the required focused sub-skill (`dev-flow-planning`, `dev-flow-execution`, `dev-flow-git`, or `dev-flow-acceptance`).
-4. Present user-facing replies in Chinese.
+3. Let that skill load `dev-flow-intent`, classify the request, and decide the route.
+4. Load the required focused sub-skill (`dev-flow-debugging`, `dev-flow-ui-ux`, `dev-flow-review`, `dev-flow-planning`, `dev-flow-execution`, `dev-flow-git`, or `dev-flow-acceptance`).
+5. Present user-facing replies in Chinese.
 
 It should **not**:
 
 - duplicate the routing and gating logic already defined in `dev-flow-master`
+- skip intent classification for new entry requests
 - duplicate the detailed stage logic owned by focused `dev-flow-*` sub-skills
 - replace `opsx-propose`, `opsx-explore`, or `opsx-apply`
 - embed the four document templates directly
@@ -49,6 +55,8 @@ It should **not**:
 After entering this command, the workflow should be governed by `dev-flow-master`, which will decide whether to:
 
 - check for existing change/spec context
+- classify user intent through `dev-flow-intent`
+- route debugging, UI/UX, and review work to focused skills
 - route lightweight work into the built-in opsx artifact flow
 - route medium/heavy work into the governed document path
 - ask for review mode

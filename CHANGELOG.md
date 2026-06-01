@@ -7,6 +7,7 @@
 - Add `dev-flow-intent` as the master-loaded intent classifier for debugging, feature, change-adjustment, review, UI/UX, status-recovery, and question routes.
 - Add focused route skills for `dev-flow-debugging`, `dev-flow-ui-ux`, and `dev-flow-review`.
 - Add Claude Code installation support with `install-claude`, `update-claude`, `doctor-claude`, and a Claude `/dev-flow` command.
+- Add trusted npm publishing workflow metadata for the `paulLee778899/dev-flow-skills` repository.
 - Add routing eval prompts in `evals/evals.json`.
 
 ### Changed

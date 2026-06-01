@@ -10,7 +10,7 @@ Users can give an AI agent this prompt:
 Install Dev Flow Skills for this environment.
 
 Follow the instructions at:
-https://raw.githubusercontent.com/1Zihao/dev-flow-skills/main/install/agent-install.md
+https://raw.githubusercontent.com/paulLee778899/dev-flow-skills/main/install/agent-install.md
 
 Default to global installation unless I explicitly ask for project-local installation.
 Use npm when available:

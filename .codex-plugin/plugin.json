@@ -1,13 +1,13 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Governed development-flow skills for AI coding agents with intent routing, debugging, UI/UX, review, planning, execution, Git safety, and acceptance.",
   "author": {
-    "name": "1Zihao",
-    "url": "https://github.com/1Zihao"
+    "name": "paulLee778899",
+    "url": "https://github.com/paulLee778899"
   },
-  "homepage": "https://github.com/1Zihao/dev-flow-skills",
-  "repository": "https://github.com/1Zihao/dev-flow-skills",
+  "homepage": "https://github.com/paulLee778899/dev-flow-skills",
+  "repository": "https://github.com/paulLee778899/dev-flow-skills",
   "license": "MIT",
   "keywords": [
     "dev-flow",
@@ -27,7 +27,7 @@
     "displayName": "Dev Flow Skills",
     "shortDescription": "Intent-routed debugging, UI/UX, review, planning, execution, Git safety, and acceptance workflow",
     "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, formal planning documents, task orchestration, continuous execution, Git safety, and final acceptance evidence.",
-    "developerName": "1Zihao",
+    "developerName": "paulLee778899",
     "category": "Coding",
     "capabilities": [
       "Interactive",

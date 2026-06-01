@@ -1,7 +1,7 @@
 # Dev Flow Skills
 
 [![npm version](https://img.shields.io/npm/v/dev-flow-skills.svg)](https://www.npmjs.com/package/dev-flow-skills)
-[![CI](https://github.com/1Zihao/dev-flow-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/1Zihao/dev-flow-skills/actions/workflows/ci.yml)
+[![CI](https://github.com/paulLee778899/dev-flow-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/paulLee778899/dev-flow-skills/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Governed development-flow skills for AI coding agents.
@@ -66,7 +66,7 @@ dev-flow doctor --global
 Use this if you want to test the repository version before an npm release:
 
 ```bash
-git clone https://github.com/1Zihao/dev-flow-skills.git
+git clone https://github.com/paulLee778899/dev-flow-skills.git
 cd dev-flow-skills
 npm install -g .
 dev-flow install --global
@@ -89,7 +89,7 @@ Tell your coding agent:
 
 ```text
 Fetch and follow the Dev Flow Skills agent installation instructions from:
-https://raw.githubusercontent.com/1Zihao/dev-flow-skills/main/install/agent-install.md
+https://raw.githubusercontent.com/paulLee778899/dev-flow-skills/main/install/agent-install.md
 
 Install globally by default unless I explicitly ask for project-local installation.
 Detect the current agent platform and follow the matching platform guide when one exists.

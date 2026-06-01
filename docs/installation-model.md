@@ -17,6 +17,7 @@ Target:
 ```
 
 Use this for personal agent workflows that should be available across all projects.
+Codex and Claude Code use their own discovery directories through their platform adapters.
 
 ## 2. Project-local install
 
@@ -49,3 +50,8 @@ Recommended resolution order:
 3. Remote installation instructions
 
 This allows global defaults plus project-specific overrides.
+
+Platform adapters install into the native discovery locations for each agent:
+
+- Codex: `~/.agents/skills/` and `~/.agents/commands/`
+- Claude Code: `~/.claude/skills/` and `~/.claude/commands/`

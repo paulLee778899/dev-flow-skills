@@ -38,6 +38,14 @@ jobs:
           node bin/dev-flow.mjs doctor-codex --target "$tmpdir/skills/dev-flow-skills" --commands-target "$tmpdir/commands/dev-flow.md"
           test -L "$tmpdir/commands/dev-flow.md"
 
+      - name: Verify Claude install and doctor
+        run: |
+          tmpdir="$(mktemp -d)"
+          node bin/dev-flow.mjs install-claude --target "$tmpdir/skills" --commands-target "$tmpdir/commands/dev-flow.md"
+          node bin/dev-flow.mjs doctor-claude --target "$tmpdir/skills" --commands-target "$tmpdir/commands/dev-flow.md"
+          test -L "$tmpdir/commands/dev-flow.md"
+          test -L "$tmpdir/skills/dev-flow-master"
+
       - name: Verify unmanaged file protection
         run: |
           tmpdir="$(mktemp -d)"

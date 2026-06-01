@@ -21,6 +21,7 @@ Use npm when available:
 Detect the current agent platform and follow the matching platform guide when one exists:
   OpenCode -> install/opencode.md
   Codex -> .codex/INSTALL.md
+  Claude Code -> install/claude.md
   Unknown platform -> use the default global install, then report that no platform-specific adapter was applied.
 
 Do not overwrite existing modified files. Preserve local files and write incoming versions as .new unless I explicitly approve --force.
@@ -64,6 +65,7 @@ Project target:
 | --- | --- | --- |
 | OpenCode | `install/opencode.md` | `dev-flow doctor --global` or `dev-flow doctor` |
 | Codex | `.codex/INSTALL.md` | `dev-flow doctor-codex` |
+| Claude Code | `install/claude.md` | `dev-flow doctor-claude` |
 | Unknown | Default global install | `dev-flow doctor --global` |
 
 Do not hard-code every future platform into the user-facing prompt. Add new platform behavior here and in the platform guide.
@@ -99,6 +101,14 @@ Platform-specific installs are documented in the platform guides. For example, C
 npm install -g dev-flow-skills
 dev-flow install-codex
 dev-flow doctor-codex
+```
+
+Claude Code skill and command discovery uses:
+
+```bash
+npm install -g dev-flow-skills
+dev-flow install-claude
+dev-flow doctor-claude
 ```
 
 ## Do not

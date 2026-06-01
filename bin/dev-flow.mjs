@@ -11,6 +11,8 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const sourceRoot = path.join(packageRoot, '.opencode');
 const codexSkillsRoot = path.join(packageRoot, 'skills');
 const codexCommandSource = path.join(packageRoot, 'commands', 'dev-flow.md');
+const claudeSkillsRoot = path.join(packageRoot, 'skills');
+const claudeCommandSource = path.join(packageRoot, 'commands', 'claude', 'dev-flow.md');
 const packageJsonPath = path.join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const manifestName = 'dev-flow-manifest.json';
@@ -37,6 +39,16 @@ async function main() {
 
   if (command === 'doctor-codex') {
     await doctorCodex();
+    return;
+  }
+
+  if (command === 'install-claude' || command === 'update-claude') {
+    await installClaudeAdapter(command);
+    return;
+  }
+
+  if (command === 'doctor-claude') {
+    await doctorClaude();
     return;
   }
 
@@ -69,6 +81,24 @@ function codexCommandTarget() {
   }
 
   return path.join(homedir(), '.agents', 'commands', 'dev-flow.md');
+}
+
+function claudeSkillsTargetRoot() {
+  const explicitTarget = flags.get('target');
+  if (typeof explicitTarget === 'string') {
+    return path.resolve(process.cwd(), explicitTarget);
+  }
+
+  return path.join(homedir(), '.claude', 'skills');
+}
+
+function claudeCommandTarget() {
+  const explicitTarget = flags.get('commands-target');
+  if (typeof explicitTarget === 'string') {
+    return path.resolve(process.cwd(), explicitTarget);
+  }
+
+  return path.join(homedir(), '.claude', 'commands', 'dev-flow.md');
 }
 
 function parseFlags(items) {
@@ -304,6 +334,97 @@ async function doctorCodex() {
   console.log('\nReady. Restart Codex if it was already running.');
 }
 
+async function installClaudeAdapter(action) {
+  const skillsTargetRoot = claudeSkillsTargetRoot();
+  const commandTarget = claudeCommandTarget();
+  const dryRun = flags.has('dry-run');
+  const force = flags.has('force');
+  const skillDirectories = collectSkillDirectories(claudeSkillsRoot);
+  const targets = [
+    ...skillDirectories.map((source) => ({
+      label: `skill:${path.basename(source)}`,
+      source,
+      target: path.join(skillsTargetRoot, path.basename(source)),
+      type: 'dir',
+    })),
+    { label: 'command', source: claudeCommandSource, target: commandTarget, type: 'file' },
+  ];
+
+  console.log(`Dev Flow Skills ${action}`);
+  console.log(`Skills source: ${claudeSkillsRoot}`);
+  console.log(`Skills target: ${skillsTargetRoot}`);
+  console.log(`Command source: ${claudeCommandSource}`);
+  console.log(`Command target: ${commandTarget}`);
+  if (dryRun) {
+    console.log('Mode: dry-run');
+  }
+
+  let blocked = false;
+  for (const item of targets) {
+    const targetExists = existsSync(item.target);
+    if (targetExists) {
+      const stat = lstatSync(item.target);
+      if (!stat.isSymbolicLink() && !force) {
+        blocked = true;
+        console.log(`\n⚠ ${item.label} target exists and is not a symlink. Preserving it: ${item.target}`);
+        console.log('Use --force to replace it intentionally.');
+        continue;
+      }
+      console.log(`~ replace ${item.target}`);
+    } else {
+      console.log(`+ link ${item.target}`);
+    }
+  }
+
+  if (blocked) {
+    return;
+  }
+
+  if (dryRun) {
+    return;
+  }
+
+  for (const item of targets) {
+    await mkdir(path.dirname(item.target), { recursive: true });
+    if (existsSync(item.target)) {
+      rmSync(item.target, { recursive: true, force: true });
+    }
+    await symlink(item.source, item.target, item.type);
+  }
+  console.log('\nClaude skills and /dev-flow command installed. Restart Claude Code to discover them.');
+}
+
+async function doctorClaude() {
+  const skillsTargetRoot = claudeSkillsTargetRoot();
+  const commandTarget = claudeCommandTarget();
+  const required = collectSkillDirectories(claudeSkillsRoot).map((source) => path.basename(source));
+
+  console.log('Dev Flow Skills Claude Doctor');
+  console.log(`Skills target: ${skillsTargetRoot}`);
+  console.log(`Command target: ${commandTarget}\n`);
+
+  let ok = existsSync(skillsTargetRoot);
+  console.log(`${ok ? '✓' : '✗'} ${skillsTargetRoot}`);
+
+  for (const skillName of required) {
+    const exists = existsSync(path.join(skillsTargetRoot, skillName, 'SKILL.md'));
+    ok = ok && exists;
+    console.log(`${exists ? '✓' : '✗'} ${skillName}/SKILL.md`);
+  }
+
+  const commandExists = existsSync(commandTarget);
+  ok = ok && commandExists;
+  console.log(`${commandExists ? '✓' : '✗'} ${commandTarget}`);
+
+  if (!ok) {
+    process.exitCode = 1;
+    console.log('\nNot ready. Run `dev-flow install-claude` and restart Claude Code.');
+    return;
+  }
+
+  console.log('\nReady. Restart Claude Code if it was already running.');
+}
+
 async function uninstall() {
   const target = targetRoot();
   const dryRun = flags.has('dry-run');
@@ -374,6 +495,13 @@ function collectFiles(root) {
   return files.sort();
 }
 
+function collectSkillDirectories(root) {
+  return readdirSync(root)
+    .map((entry) => path.join(root, entry))
+    .filter((entryPath) => statSync(entryPath).isDirectory() && existsSync(path.join(entryPath, 'SKILL.md')))
+    .sort();
+}
+
 function readManifest(target) {
   const manifestPath = path.join(target, manifestName);
   if (!existsSync(manifestPath)) {
@@ -417,6 +545,9 @@ Usage:
   dev-flow install-codex [--target PATH] [--commands-target PATH] [--dry-run] [--force]
   dev-flow update-codex [--target PATH] [--commands-target PATH] [--dry-run] [--force]
   dev-flow doctor-codex [--target PATH] [--commands-target PATH]
+  dev-flow install-claude [--target PATH] [--commands-target PATH] [--dry-run] [--force]
+  dev-flow update-claude [--target PATH] [--commands-target PATH] [--dry-run] [--force]
+  dev-flow doctor-claude [--target PATH] [--commands-target PATH]
   dev-flow uninstall [--global|--target PATH] [--dry-run]
   dev-flow version
 `);

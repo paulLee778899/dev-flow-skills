@@ -103,6 +103,7 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 
 - OpenCode: [`install/opencode.md`](install/opencode.md)
 - Codex: [`.codex/INSTALL.md`](.codex/INSTALL.md)
+- Claude Code: [`install/claude.md`](install/claude.md)
 - Agent installation: [`install/agent-install.md`](install/agent-install.md)
 - Manual installation details: [`install/manual-install.md`](install/manual-install.md)
 
@@ -165,7 +166,7 @@ dev-flow doctor --global
 dev-flow version
 ```
 
-Platform-specific commands are documented in the platform guides. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
+Platform-specific commands are documented in the platform guides. Codex uses `install-codex` / `doctor-codex`; Claude Code uses `install-claude` / `doctor-claude`. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
 
 ## Safety model
 

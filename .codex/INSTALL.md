@@ -7,7 +7,7 @@ Codex discovers skills and commands through native discovery directories:
 ~/.agents/commands/
 ```
 
-This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and a root `commands/dev-flow.md` file for the `/dev-flow` command.
+This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and root command files for `/dev-flow` and `/dev-flow-cr`.
 
 The planning templates are bundled under `skills/dev-flow-master/templates/` and checked by `dev-flow doctor-codex`.
 
@@ -29,7 +29,7 @@ dev-flow install-codex
 dev-flow doctor-codex
 ```
 
-Then restart Codex so it discovers the skills and `/dev-flow` command.
+Then restart Codex so it discovers the skills and `/dev-flow` plus `/dev-flow-cr` commands.
 
 ## Manual Git install
 
@@ -41,9 +41,10 @@ mkdir -p ~/.agents/skills
 mkdir -p ~/.agents/commands
 ln -s ~/.codex/dev-flow-skills/skills ~/.agents/skills/dev-flow-skills
 ln -s ~/.codex/dev-flow-skills/commands/dev-flow.md ~/.agents/commands/dev-flow.md
+ln -s ~/.codex/dev-flow-skills/commands/dev-flow-cr.md ~/.agents/commands/dev-flow-cr.md
 ```
 
-Then restart Codex so it discovers the skills and `/dev-flow` command.
+Then restart Codex so it discovers the skills and `/dev-flow` plus `/dev-flow-cr` commands.
 
 ## Install from npm package contents
 
@@ -55,6 +56,7 @@ Use the slash command when available:
 
 ```text
 /dev-flow <your task>
+/dev-flow-cr <optional review scope>
 ```
 
 Or ask Codex to use the master skill explicitly:
@@ -63,7 +65,7 @@ Or ask Codex to use the master skill explicitly:
 Use the dev-flow-master skill for this task. Let it load dev-flow-intent, route to debugging/UI-UX/review or governed planning as appropriate, then follow the dev-flow execution, git, and acceptance workflow.
 ```
 
-OpenCode and Codex use different command locations. OpenCode `/dev-flow` is installed through `.opencode/command/dev-flow.md`; Codex `/dev-flow` is installed through `~/.agents/commands/dev-flow.md` or a plugin-root `commands/dev-flow.md`.
+OpenCode and Codex use different command locations. OpenCode commands are installed through `.opencode/command/*.md`; Codex commands are installed through `~/.agents/commands/*.md` or a plugin-root `commands/*.md`.
 
 ## Updating
 
@@ -84,13 +86,14 @@ dev-flow doctor-codex
 
 Restart Codex after updating.
 
-If you installed an earlier skills-only Codex adapter, `dev-flow update-codex` adds the missing `/dev-flow` command symlink.
+If you installed an earlier adapter, `dev-flow update-codex` adds the missing `/dev-flow` and `/dev-flow-cr` command symlinks.
 
 ## Uninstalling
 
 ```bash
 rm ~/.agents/skills/dev-flow-skills
 rm ~/.agents/commands/dev-flow.md
+rm ~/.agents/commands/dev-flow-cr.md
 ```
 
 Optionally delete the clone:

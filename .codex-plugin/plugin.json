@@ -1,7 +1,7 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.12",
-  "description": "Governed development-flow skills for AI coding agents with intent routing, debugging, UI/UX, review, planning, execution, Git safety, and acceptance.",
+  "version": "0.1.14",
+  "description": "Governed development-flow skills for AI coding agents with intent routing, debugging, UI/UX, review, planning, execution, Git safety, acceptance, and independent CR.",
   "author": {
     "name": "paulLee778899",
     "url": "https://github.com/paulLee778899"
@@ -20,13 +20,14 @@
     "execution",
     "git",
     "acceptance",
+    "cr",
     "workflow"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Dev Flow Skills",
-    "shortDescription": "Intent-routed debugging, UI/UX, review, planning, execution, Git safety, and acceptance workflow",
-    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, formal planning documents, task orchestration, continuous execution, Git safety, and final acceptance evidence.",
+    "shortDescription": "Intent-routed planning, execution, Git safety, acceptance, and independent CR",
+    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, formal planning documents, task orchestration, continuous execution, Git safety, final acceptance evidence, and independent post-acceptance CR.",
     "developerName": "paulLee778899",
     "category": "Coding",
     "capabilities": [
@@ -37,7 +38,8 @@
     "defaultPrompt": [
       "Use dev-flow to route and handle this development request.",
       "Run a governed dev-flow for this project change.",
-      "Use dev-flow to debug this failure and verify the fix."
+      "Use dev-flow to debug this failure and verify the fix.",
+      "Use dev-flow-cr to review the current diff after acceptance."
     ],
     "brandColor": "#2563EB",
     "screenshots": []

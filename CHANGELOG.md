@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## [0.1.14] - 2026-06-24
+
+### Added
+
+- Add independent `/dev-flow-cr` commands for OpenCode, Codex, and Claude Code, backed by the new `dev-flow-cr` skill and persisted CR reports.
+
+### Changed
+
+- Make CR user-triggered after acceptance instead of an automatic `/dev-flow` stage.
+- Change Phase 2 execution from implicit agent dispatch to an explicit execution-actor proposal with user approval for direct concurrent writers and worktree creation.
+- Remove forced worktree language; direct no-worktree writes remain serial, while no-worktree parallelism uses patch-ready outputs plus main-agent serial apply.
+
 ## [0.1.13] - 2026-06-24
 
 ### Added
@@ -16,7 +28,7 @@
 ### Changed
 
 - Update `dev-flow-master` to remain the entry controller while delegating intent classification to `dev-flow-intent`.
-- Show the default multi-agent/subagent execution mode at Phase 2 Gate after orchestration and Git checks, with main-agent serial fallback/override.
+- Show the Phase 2 execution mode after orchestration and Git checks, with main-agent serial fallback/override.
 - Clarify the skill reuse policy: call Superpowers workflows directly when available, and absorb optional marketplace/local skill patterns without hard dependencies.
 - Update installer doctor checks, command docs, plugin metadata, and public docs for the new route skills.
 - Keep core `SKILL.md` files short and move detailed governance into on-demand references.

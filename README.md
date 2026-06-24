@@ -120,6 +120,7 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 | `dev-flow-execution` | Continuous execution, task settlement, dynamic replanning, and runtime state |
 | `dev-flow-git` | Worktree, shared-working-tree, branch, PR, patch, rollback, and conflict safety |
 | `dev-flow-acceptance` | Final verification, quality evidence, and delivery report |
+| `dev-flow-cr` | Independent user-triggered post-acceptance code review and CR report |
 
 ## Typical flow
 
@@ -137,10 +138,11 @@ Agent:
 8. Writes requirement/design/test documents after user confirmation.
 9. Builds task orchestration, parallel-safety rules, and an executable test matrix.
 10. Selects a Git strategy.
-11. Shows the default multi-agent/subagent execution mode at Phase 2 Gate, after orchestration, overlap-risk, and Git checks.
+11. Shows the proposed execution actor at Phase 2 Gate, after orchestration, overlap-risk, and Git checks.
 12. Executes continuously until all planned tasks settle.
 13. Replans if requirements change or execution invalidates the plan.
 14. Runs final acceptance and writes delivery evidence.
+15. Suggests user acceptance followed by optional `/dev-flow-cr`; CR is independent and not automatic.
 ```
 
 ## Generated artifacts
@@ -157,6 +159,7 @@ For governed work, the flow is designed to produce durable project artifacts suc
 - runtime orchestration state
 - `progress.md`
 - `delivery-report.md`
+- `cr-report.md` when the user later runs `/dev-flow-cr`
 
 For lightweight work, the flow uses the active project's OpenSpec schema instead of the four dev-flow planning docs. Expected evidence includes:
 
@@ -189,18 +192,19 @@ dev-flow version
 
 Platform-specific commands are documented in the platform guides. Codex uses `install-codex` / `doctor-codex`; Claude Code uses `install-claude` / `doctor-claude`. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
 
-Doctor commands check required files, planning templates, core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+Doctor commands check required files, planning templates, the `/dev-flow` and `/dev-flow-cr` commands, core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
 
 ## Safety model
 
 - User confirmation is required before starting formal planning documents when clarification is incomplete.
 - Gate approvals and required signals are recorded in `dev-flow-state.md`; chat memory is not enough evidence for governed completion.
 - Lightweight work uses opsx/OpenSpec artifacts instead of the four dev-flow planning docs; if opsx/OpenSpec is unavailable, the workflow stops for user direction instead of silently doing chat-only or ad hoc planning.
-- Phase 2 Gate shows the default multi-agent/subagent execution mode before implementation starts; users may override it to main-agent serial execution.
+- Phase 2 Gate shows the proposed execution actor before implementation starts; direct concurrent writers and worktree creation require explicit approval.
 - Requirement changes during execution must return to planning before code changes continue.
 - Shared working-tree writes must be serialized.
 - Tasks with high file or symbol overlap must be serialized even when worktrees are available.
 - Parallel no-worktree mode should use patch generation plus main-agent serial apply.
-- Final acceptance requires review/self-review evidence and canonical Git integration states for every task.
+- Final acceptance requires task self-review evidence and canonical Git integration states for every task.
+- Independent CR is user-triggered through `/dev-flow-cr` after the user accepts or inspects delivered work; it is not an automatic `/dev-flow` stage.
 - Local modifications are protected by manifest checksums during update.
 - Final success requires verification evidence, not only agent self-reporting.

@@ -143,7 +143,7 @@ Mandatory recovery checks:
 
 - If `dev-flow-state.md` or `progress.md` records requirement change, `stale-pending`, gate re-entry, failed/blocked task, rollback, skip/defer decision, or pause, resume that recovery path first.
 - If a task is marked done but its changed files/tests/evidence are missing, treat it as not settled and re-verify before advancing.
-- If a task is marked done but self-review, required UI/UX evidence, or canonical Git integration state is missing, treat it as not settled for acceptance.
+- If a task is marked done but task self-review, required UI/UX evidence, or canonical Git integration state is missing, treat it as not settled for acceptance.
 - If a task is marked running but no task agent is active, classify it as interrupted and either resume the same task context or retry without counting it as a task failure until a final signal exists.
 - If documents changed after Runtime Orchestration State was last built, rebuild DAG, batches, Executable Test Matrix, and current execution pointer.
 - Rewrite `dev-flow-state.md` and `progress.md` after reconciliation and before dispatching more work.
@@ -152,4 +152,4 @@ Never dispatch from stale memory after recovery. The first action after recovery
 
 ## Required Signal
 
-Emit `execution_settled` at batch boundaries and before acceptance with: Runtime Orchestration State summary, task states, final signals received, diagnostics/tests run, batch status, dynamic replans applied, fallbacks used, review/self-review evidence status, and unresolved blockers. Emit and persist `review_evidence_ready` when integrated tasks have the required review/self-review evidence.
+Emit `execution_settled` at batch boundaries and before acceptance with: Runtime Orchestration State summary, task states, final signals received, diagnostics/tests run, batch status, dynamic replans applied, fallbacks used, task self-review evidence status, and unresolved blockers. Emit and persist `review_evidence_ready` when integrated tasks have the required task self-review evidence.

@@ -11,7 +11,7 @@ Own root-cause-first debugging before any fix. Selected after `dev-flow-intent` 
 
 Diagnose and guide fixes. Do not bypass `dev-flow-master` for complexity routing, gates, Git side effects, or final completion. If diagnosis reveals feature work, requirement change, UI/UX work, or review-only work, return that recommendation to master.
 
-**REQUIRED SUB-SKILL:** Use `superpowers:systematic-debugging` when available. If unavailable, follow this skill's fallback.
+**Optional helper skill:** Use `superpowers:systematic-debugging` when available. If unavailable, follow this skill's fallback.
 
 ## Iron Rule
 

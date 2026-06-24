@@ -33,9 +33,9 @@ Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed doc
 | `opsx_apply_complete` | focused route owner or main agent | applied tasks, implementation status, changed files, task checkbox state, and Git/patch state |
 | `opsx_verify_complete` | focused route owner or main agent | `/opsx:verify <change>` output, skipped checks with reasons, unresolved risks, and readiness recommendation |
 | `git_safe` | `dev-flow-git` | isolation mode, integration mode, permission/capability result, side-effect boundary |
-| `execution_actor_decided` | `dev-flow-master` | default multi-agent/subagent execution mode shown at Phase 2 Gate, plus any user override |
+| `execution_actor_decided` | `dev-flow-master` | proposed execution actor shown at Phase 2 Gate, user approval or override, and writer concurrency boundary |
 | `ui_ux_report` | `dev-flow-ui-ux` | target surface, runtime/browser evidence or blocked reason, interaction/responsive/accessibility result |
-| `review_evidence_ready` | `dev-flow-execution` or `dev-flow-acceptance` | task self-review or code review evidence for integrated work |
+| `review_evidence_ready` | `dev-flow-execution` or `dev-flow-acceptance` | task self-review evidence for integrated work; independent CR is separate `/dev-flow-cr` evidence |
 | `execution_settled` | `dev-flow-execution` | batch/task status, Runtime Orchestration State summary, replan history, test/diagnostic evidence, unresolved blockers |
 | `acceptance_ready` | `dev-flow-acceptance` | final test results, quality evidence, delivery report path, Git/patch states, unresolved follow-ups |
 
@@ -47,7 +47,7 @@ Gate rules:
 - Do not present Phase 2 Gate as ready without `task_orchestration_ready` and `git_safe`.
 - Do not execute lightweight code/config/test/user-visible changes until `lightweight_artifact_ready` records the OpenSpec/opsx change context.
 - Do not accept lightweight work until `opsx_apply_complete` and `opsx_verify_complete` are recorded.
-- Do not enter Phase 3 until Phase 2 Gate has presented the default execution actor and recorded `execution_actor_decided`.
+- Do not enter Phase 3 until Phase 2 Gate has presented the proposed execution actor and recorded `execution_actor_decided`.
 - Do not enter acceptance until execution reports all batches completed, user/gate-accepted as deferred, or replanned under `execution_settled`.
 - Do not report `ready-to-report` without `acceptance_ready`.
 
@@ -103,11 +103,11 @@ After `dev-flow-planning` writes `task-orchestration.md` and `dev-flow-git` emit
 - Git isolation mode, integration mode, and writer concurrency limit
 - automation readiness status and blockers
 - execution mode, presented in Chinese:
-  - `执行方式：默认使用 multi-agent/subagent 执行；主 agent 负责任务调度、Git 边界、验证、进度同步和最终集成。若 Git 安全、文件冲突、平台能力或用户指令不允许并发写入，将自动降级为串行 subagent、shared-worktree patch mode 或主线程串行执行。若你希望主线程串行执行，请在确认 Phase 2 Gate 前说明。`
+  - `执行方式建议：基于当前 DAG、文件/符号重叠和 Git 安全边界，建议使用 <主线程串行 | 串行 subagent | patch-ready 并发分析 | 用户授权后的并发写入>。不会强制创建 worktree；如建议并发直接写入，需要你明确同意隔离方式。未授权时将使用串行写入或 shared-worktree patch mode。`
 
-Before user approval, record the proposed execution actor in `dev-flow-state.md` as `execution_actor_proposed`. After explicit Phase 2 execution approval, emit `execution_actor_decided` with: default mode, effective fallback rules, user override if any, the approval text, and whether the approval accepted the shown execution mode.
+Before user approval, record the proposed execution actor in `dev-flow-state.md` as `execution_actor_proposed`. After explicit Phase 2 execution approval, emit `execution_actor_decided` with: proposed mode, effective fallback rules, user override if any, the approval text, and whether any concurrent writing and worktree creation were explicitly approved.
 
-Do not enter Phase 3 until the user explicitly says to start execution, for example “开始执行”, “执行”, “start”, “go”, or equivalent. That approval accepts the displayed execution mode unless the user explicitly overrides it.
+Do not enter Phase 3 until the user explicitly says to start execution, for example “开始执行”, “执行”, “start”, “go”, or equivalent. That approval accepts only the displayed execution mode; direct concurrent writers and worktree creation require explicit approval when they are part of the proposal.
 
 ## Completion Gate
 
@@ -125,7 +125,7 @@ For governed medium/heavy work, the master may report `ready-to-report` only aft
 4. all DAG tasks are completed, explicitly accepted as deferred by the user/gate, or dynamically replanned under execution rules
 5. task, batch, and final Executable Test Matrix checks have passed or were explicitly accepted as deferred scope
 6. every task uses one canonical Git integration state from `dev-flow-git`: `merged`, `committed`, `pr_opened`, `direct_commit_complete`, `patch_ready`, `shared_working_tree_applied`, `applied_from_shared_worktree_patch`, or `deferred_accepted`
-7. review/self-review evidence exists for integrated work
+7. task self-review evidence exists for integrated work; independent CR is optional and user-triggered through `/dev-flow-cr`
 8. applicable quality-gate evidence is recorded, including `ui_ux_report` when `ui_runtime` risk applies
 9. no unresolved blocker remains
 
@@ -138,5 +138,7 @@ For lightweight work, the master may report `ready-to-report` only after `dev-fl
 5. Git/patch state is explicit through `dev-flow-git` when side effects are involved
 6. required focused-route evidence exists, including `debugging_report` for debugging work and `ui_ux_report` for UI runtime risk
 7. no unresolved blocker remains
+
+After reporting `ready-to-report`, suggest that the user perform their own acceptance and then run `/dev-flow-cr` for independent post-acceptance code review when they want CR. Do not run CR automatically as part of `/dev-flow`.
 
 For avoidance of doubt: a document or plan that only appeared in chat does not satisfy a persisted artifact requirement.

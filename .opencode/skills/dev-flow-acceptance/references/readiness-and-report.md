@@ -27,7 +27,7 @@ Do not rely on chat memory over files and actual state.
    - migration/deprecation
    - release/rollback
 4. Verify every task has explicit integration state through `dev-flow-git`.
-5. Verify review/self-review evidence exists for each integrated task.
+5. Verify task self-review evidence exists for each integrated task. Do not require an independent CR report unless the user separately ran `/dev-flow-cr`.
 6. Write `Docs/<topic>/delivery-report.md` or the canonical legacy path.
 7. Perform safe cleanup through `dev-flow-git` only where allowed.
 
@@ -42,7 +42,7 @@ The report must include:
 - quality-gate evidence and evidence locations
 - dynamic replanning decisions and old/new task mappings
 - fallback modes used and why
-- review/self-review evidence by task
+- task self-review evidence by task
 - unresolved failures, blockers, or accepted known risks
 - scope changes since Phase 1/Phase 2 approval and whether gate re-entry occurred or was not required
 - known issues and follow-up items
@@ -66,7 +66,7 @@ For governed medium/heavy work, report `ready-to-report` only when:
 3. `dev-flow-state.md`, `task-orchestration.md`, `progress.md`, and `delivery-report.md` exist where applicable
 4. all DAG tasks are completed, explicitly accepted as deferred by the user/gate, or replanned under governed rules
 5. per-task, batch, and final Executable Test Matrix checks pass or are explicitly accepted as deferred scope by the user/gate
-6. code review/self-review evidence exists for integrated work
+6. task self-review evidence exists for integrated work; independent CR evidence is optional and only produced by `/dev-flow-cr`
 7. every task has a canonical Git/patch integration state defined by `dev-flow-git`: `merged`, `committed`, `pr_opened`, `direct_commit_complete`, `patch_ready`, `shared_working_tree_applied`, `applied_from_shared_worktree_patch`, or `deferred_accepted`
 8. applicable quality gates are satisfied or marked N/A with reason, including `ui_ux_report` when `ui_runtime` risk applies
 9. no unresolved blockers remain
@@ -85,4 +85,4 @@ If any item is missing, report `not-ready` or `ready-for-review` and continue th
 
 ## Required Signal
 
-Emit and persist `acceptance_ready` with: route type, final test results, final Executable Test Matrix result or `/opsx:verify` result, quality evidence summary, review/self-review evidence summary, delivery-report path when applicable, OpenSpec change path when applicable, task integration states, deferred scope, unresolved failures/blockers/risks, scope-change summary, cleanup status, final readiness state, and the `dev-flow-state.md` or equivalent OpenSpec/opsx status path.
+Emit and persist `acceptance_ready` with: route type, final test results, final Executable Test Matrix result or `/opsx:verify` result, quality evidence summary, task self-review evidence summary, delivery-report path when applicable, OpenSpec change path when applicable, task integration states, deferred scope, unresolved failures/blockers/risks, scope-change summary, cleanup status, final readiness state, and the `dev-flow-state.md` or equivalent OpenSpec/opsx status path.

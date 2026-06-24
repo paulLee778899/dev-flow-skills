@@ -11,7 +11,7 @@ Before Phase 3, resolve:
 - `shared-working-tree serial agent mode`: no extra worktree and no extra local branch; task agents may directly modify the current working tree, but only one writing agent may run at a time and each task must settle before the next writing agent starts.
 - `shared-worktree patch mode`: multiple agents may work in parallel without worktrees, but they must not write to the shared working tree. They produce patch-ready outputs, implementation plans, or diffs; the main agent applies them serially in the local working tree.
 
-If any batch runs 2+ writing agents concurrently, `worktree mode` is mandatory. If the user refuses worktrees and branches but still wants agents to directly implement in the current local checkout, use `shared-working-tree serial agent mode`. If the user wants multiple agents active at once without worktrees, use `shared-worktree patch mode` instead of allowing concurrent writes.
+Do not force `worktree mode`. If a batch could use 2+ direct writing agents, recommend worktree isolation and ask before creating it. If worktrees are not approved, direct writes must be serial through `shared-working-tree serial agent mode`, or parallel agents must use `shared-worktree patch mode` while the main agent applies changes one at a time.
 
 Git isolation does not make overlapping implementation safe by itself. Tasks marked with `file_overlap: high` or `symbol_overlap: high` by `dev-flow-planning` must be serialized as writers even in `worktree mode`, unless the orchestration records a specific safe integration strategy.
 

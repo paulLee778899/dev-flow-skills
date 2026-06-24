@@ -120,7 +120,8 @@ Recovery rules:
 - Do not replace opsx, OpenSpec, or superpowers; route to them when they own the work.
 - Do not force the heavy path for every request; use the classification matrix.
 - Do not advance past Phase 1 Gate or Phase 2 Gate without explicit user approval.
-- Do not hide the Phase 3 execution mode; show the default multi-agent/subagent mode before asking for Phase 2 approval.
+- Do not hide the Phase 3 execution mode; show the proposed execution actor and any concurrency/worktree approval needed before asking for Phase 2 approval.
 - Do not dispatch execution agents before Phase 2 Gate is cleared.
 - Do not claim completion before `dev-flow-acceptance` evidence satisfies the Completion Gate.
+- Do not run `/dev-flow-cr` automatically; it is a separate user-triggered command after user acceptance.
 - Do not perform external side effects, destructive Git actions, pushes, PRs, merges, production operations, or paid-service actions without the authorization rules in `dev-flow-git`.

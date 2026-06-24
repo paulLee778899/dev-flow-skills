@@ -30,7 +30,7 @@ Lightweight work skips the four dev-flow Chinese planning documents, but it does
 
 `dev-flow-planning` turns approved docs into task orchestration, DAG batches, parallel-safety rules, and an executable test matrix. `dev-flow-git` chooses the correct isolation and side-effect model: worktree, branch, shared working tree, patch-ready mode, PR mode, rollback, or conflict handling.
 
-At Phase 2 Gate, the master presents orchestration results, overlap risks, Git checks, and the default execution mode. The default is multi-agent/subagent execution governed by task batches, agent cap, Git isolation, overlap risk, and writer limits; user approval accepts that mode unless they override it to main-agent serial execution.
+At Phase 2 Gate, the master presents orchestration results, overlap risks, Git checks, and the proposed execution actor. Multi-agent execution is recommended only when task batches, agent cap, Git isolation, overlap risk, and writer limits support it; direct concurrent writers and worktree creation require explicit user approval.
 
 ## Phase 3: Execution
 
@@ -38,7 +38,7 @@ At Phase 2 Gate, the master presents orchestration results, overlap risks, Git c
 
 ## Phase 4: Acceptance
 
-`dev-flow-acceptance` collects verification evidence and decides whether the change is ready. It verifies `dev-flow-state.md`, task progress, review/self-review evidence, Git integration states, and applicable quality reports before producing the delivery report.
+`dev-flow-acceptance` collects verification evidence and decides whether the change is ready. It verifies `dev-flow-state.md`, task progress, task self-review evidence, Git integration states, and applicable quality reports before producing the delivery report. Independent CR is separate: after user acceptance, run `/dev-flow-cr` to produce a CR report.
 
 ## Requirement changes during execution
 

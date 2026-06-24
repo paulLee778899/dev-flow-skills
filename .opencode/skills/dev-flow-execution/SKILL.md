@@ -11,7 +11,7 @@ Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. Maintain 
 
 - Execute continuously after Phase 2 approval; do not stop after a task, batch, progress update, patch-ready output, or automatic inside-baseline replan when safe to continue.
 - The main agent remains coordinator for task dispatch, Git boundaries, verification, progress, and integration.
-- Use multi-agent/subagent execution by default when platform and Git safety allow it; otherwise record fallback and continue with the same task/test contract.
+- Evaluate multi-agent/subagent execution after Phase 2 planning. Use concurrent writers only when the user approves the proposed execution actor and Git/writer limits allow it.
 - Rebuild Runtime Orchestration State from persisted artifacts and actual Git/filesystem state after changes or recovery. Never dispatch from stale memory.
 
 Read `references/runtime-and-dispatch.md` before selecting agent cap, sub-waves, runtime state, or run-to-completion behavior.

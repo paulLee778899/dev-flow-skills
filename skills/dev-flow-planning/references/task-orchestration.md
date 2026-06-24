@@ -30,7 +30,7 @@ Every task must include:
 - affected regression scope
 - quality gates: source/docs, API contract, UI/browser, security, performance, migration/deprecation, release/rollback where applicable
 - rollback / recovery note
-- done signal: changed files, commands run, pass/fail summary, review/self-review evidence, and one canonical Git integration state from `dev-flow-git`
+- done signal: changed files, commands run, pass/fail summary, task self-review evidence, and one canonical Git integration state from `dev-flow-git`
 
 ### Execution Batches
 

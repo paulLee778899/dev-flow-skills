@@ -19,6 +19,10 @@ Example:
     {
       "path": "command/dev-flow.md",
       "sha256": "..."
+    },
+    {
+      "path": "command/dev-flow-cr.md",
+      "sha256": "..."
     }
   ]
 }

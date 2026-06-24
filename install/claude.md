@@ -1,6 +1,6 @@
 # Claude Code Integration
 
-Dev Flow Skills installs Claude Code skills plus a `/dev-flow` slash command.
+Dev Flow Skills installs Claude Code skills plus `/dev-flow` and `/dev-flow-cr` slash commands.
 
 ## Install
 
@@ -26,7 +26,9 @@ dev-flow doctor-claude
 ~/.claude/
   commands/
     dev-flow.md
+    dev-flow-cr.md
   skills/
+    dev-flow-cr/
     dev-flow-master/
     dev-flow-intent/
     dev-flow-debugging/
@@ -45,9 +47,10 @@ The planning templates are installed under `~/.claude/skills/dev-flow-master/tem
 
 ```text
 ~/.claude/commands/dev-flow.md
+~/.claude/commands/dev-flow-cr.md
 ```
 
-The command is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection.
+`/dev-flow` is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. `/dev-flow-cr` is independent and runs post-acceptance CR through `dev-flow-cr`.
 
 ## Skills
 
@@ -57,6 +60,7 @@ The CLI links each bundled skill directory into `~/.claude/skills/` by default:
 
 ```text
 ~/.claude/skills/dev-flow-master/
+~/.claude/skills/dev-flow-cr/
 ~/.claude/skills/dev-flow-intent/
 ~/.claude/skills/dev-flow-debugging/
 ~/.claude/skills/dev-flow-ui-ux/
@@ -73,8 +77,8 @@ The CLI links each bundled skill directory into `~/.claude/skills/` by default:
 Use custom targets when a repository should pin and commit its workflow:
 
 ```bash
-dev-flow install-claude --target .claude/skills --commands-target .claude/commands/dev-flow.md
-dev-flow doctor-claude --target .claude/skills --commands-target .claude/commands/dev-flow.md
+dev-flow install-claude --target .claude/skills --commands-target .claude/commands
+dev-flow doctor-claude --target .claude/skills --commands-target .claude/commands
 ```
 
 ## Updating
@@ -93,7 +97,9 @@ Restart Claude Code after updating so it discovers changed skills and commands.
 
 ```bash
 rm ~/.claude/commands/dev-flow.md
+rm ~/.claude/commands/dev-flow-cr.md
 rm ~/.claude/skills/dev-flow-master
+rm ~/.claude/skills/dev-flow-cr
 rm ~/.claude/skills/dev-flow-intent
 rm ~/.claude/skills/dev-flow-debugging
 rm ~/.claude/skills/dev-flow-ui-ux

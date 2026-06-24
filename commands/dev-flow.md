@@ -23,7 +23,8 @@ Use this command as the Codex slash-command entrypoint for Dev Flow Skills.
 - Do not treat this command as a chat-only summary. It is an execution workflow.
 - Do not skip intent classification for new dev-flow entry requests.
 - Lightweight work must leave persisted evidence through opsx/OpenSpec artifacts. If opsx/OpenSpec is unavailable or uninitialized, stop and ask whether to initialize/install it or reclassify into governed planning. A direct change without artifacts is only allowed if the user explicitly exits dev-flow.
-- Before Phase 3, show the default multi-agent/subagent execution mode after task orchestration, parallel-safety, and Git checks; user approval accepts it unless they override to main-agent serial execution.
+- Before Phase 3, show the proposed execution actor after task orchestration, parallel-safety, and Git checks; do not assume multi-agent or worktree use without explicit approval.
+- Do not run CR automatically. After delivery, users may run `/dev-flow-cr` after their own acceptance.
 - If requirements change during execution, return to planning before continuing implementation.
 - If local files would be overwritten, preserve modified content unless the user explicitly approves a force operation.
 

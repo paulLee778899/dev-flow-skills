@@ -16,6 +16,7 @@ This installs files into:
 ```text
 ~/.opencode/
   command/dev-flow.md
+  command/dev-flow-cr.md
   skills/dev-flow-*/
 ```
 
@@ -25,7 +26,7 @@ Each core skill keeps its short routing contract in `SKILL.md` and detailed inst
 
 The OpenCode install surface intentionally includes the core `dev-flow-*` skills only. Extra skills in the repository's top-level `skills/` directory are for platform adapters or project-specific use and are not automatically part of `.opencode/skills`.
 
-Doctor commands also check core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+Doctor commands also check core `references/`, `/dev-flow-cr`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
 
 Verify:
 
@@ -58,6 +59,7 @@ This installs files into:
 ```text
 ./.opencode/
   command/dev-flow.md
+  command/dev-flow-cr.md
   skills/dev-flow-*/
 ```
 

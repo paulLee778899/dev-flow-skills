@@ -13,7 +13,7 @@ Use `superpowers:verification-before-completion` when available before claiming 
 
 - Reconcile persisted artifacts, actual Git/filesystem state, task results, and Runtime Orchestration State.
 - Run final checks from the Executable Test Matrix, or verify lightweight work against `/opsx:verify <change>` evidence.
-- Confirm review/self-review evidence and canonical Git/patch integration states.
+- Confirm task self-review evidence and canonical Git/patch integration states. Independent CR is user-triggered through `/dev-flow-cr`, not automatic acceptance.
 - Write `delivery-report.md` for governed work and record readiness evidence for lightweight opsx/OpenSpec work.
 - Report `not-ready` or `ready-for-review` when required evidence is missing; do not claim completion.
 

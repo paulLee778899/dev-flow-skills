@@ -10,7 +10,7 @@ Own Git isolation, integration mode, side-effect permissions, rollback, conflict
 ## Core Contract
 
 - Resolve Git mode before Phase 2 Gate.
-- If any batch runs multiple concurrent writing agents, worktree mode is mandatory unless agents are read-only/patch-ready and the main agent serially applies changes.
+- Never force worktree mode. Recommend or ask for it when concurrent direct writers would benefit from isolation; if not approved, use serial writers or shared-worktree patch mode.
 - Default to patch-ready mode when commits, pushes, PRs, merges, or destructive actions are not explicitly authorized or supported.
 - Use exact canonical integration state names in persisted artifacts.
 - Preserve unrelated user changes and avoid staging/committing them unless explicitly authorized.

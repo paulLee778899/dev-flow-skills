@@ -34,7 +34,9 @@ dev-flow doctor --global
 .opencode/
   command/
     dev-flow.md
+    dev-flow-cr.md
   skills/
+    dev-flow-cr/
     dev-flow-master/
     dev-flow-intent/
     dev-flow-debugging/
@@ -50,20 +52,22 @@ Each core skill keeps its short routing contract in `SKILL.md` and detailed inst
 
 `.opencode/skills` is the OpenCode package surface for the core `dev-flow-*` workflow. It is not a full mirror of the repository's top-level `skills/` directory; platform-specific or project-specific skills, such as `tk8620-firmware-workflow`, may exist only under `skills/` for Codex/Claude adapters.
 
-`dev-flow doctor` also checks core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+`dev-flow doctor` also checks core `references/`, `/dev-flow-cr`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
 
 ## Command
 
 ```text
 .opencode/command/dev-flow.md
+.opencode/command/dev-flow-cr.md
 ```
 
-The command is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection.
+The `/dev-flow` command is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. The `/dev-flow-cr` command is independent and runs post-acceptance CR through `dev-flow-cr`; it is not an automatic `/dev-flow` stage.
 
 ## Skills
 
 ```text
 .opencode/skills/dev-flow-master/
+.opencode/skills/dev-flow-cr/
 .opencode/skills/dev-flow-intent/
 .opencode/skills/dev-flow-debugging/
 .opencode/skills/dev-flow-ui-ux/

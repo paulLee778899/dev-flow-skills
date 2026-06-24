@@ -61,7 +61,7 @@ If both are plausible and document shape materially changes, ask one short clari
 
 ### Brainstorming Handoff
 
-**REQUIRED SUB-SKILL:** Use `superpowers:brainstorming` when available for creative feature shaping, UI concepts, new workflows, or ambiguous behavior changes before implementation planning. Dev-flow still owns the persisted four-document output, review gates, task orchestration, and test matrix.
+**Optional helper skill:** Use `superpowers:brainstorming` when available for creative feature shaping, UI concepts, new workflows, or ambiguous behavior changes before implementation planning. Dev-flow still owns the persisted four-document output, review gates, task orchestration, and test matrix.
 
 Before drafting, the handoff must cover:
 

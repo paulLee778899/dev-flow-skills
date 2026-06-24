@@ -10,15 +10,16 @@ import { fileURLToPath } from 'node:url';
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceRoot = path.join(packageRoot, '.opencode');
 const codexSkillsRoot = path.join(packageRoot, 'skills');
-const codexCommandSource = path.join(packageRoot, 'commands', 'dev-flow.md');
+const codexCommandsSourceRoot = path.join(packageRoot, 'commands');
 const claudeSkillsRoot = path.join(packageRoot, 'skills');
-const claudeCommandSource = path.join(packageRoot, 'commands', 'claude', 'dev-flow.md');
+const claudeCommandsSourceRoot = path.join(packageRoot, 'commands', 'claude');
 const packageJsonPath = path.join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const manifestName = 'dev-flow-manifest.json';
 const repositorySlug = 'paulLee778899/dev-flow-skills';
 const coreSkillNames = [
   'dev-flow-acceptance',
+  'dev-flow-cr',
   'dev-flow-debugging',
   'dev-flow-execution',
   'dev-flow-git',
@@ -29,6 +30,8 @@ const coreSkillNames = [
   'dev-flow-ui-ux',
 ];
 const opsxRequiredPhrases = ['/opsx:ff', '/opsx:apply', '/opsx:verify'];
+const commandFileNames = ['dev-flow.md', 'dev-flow-cr.md'];
+const crIndependentPhrase = 'Do not run as an automatic `/dev-flow` stage';
 const staleWorkflowPatterns = [
   { pattern: 'opsx-propose', reason: 'old opsx command name' },
   { pattern: 'lightweight-change', reason: 'ad hoc lightweight artifact name' },
@@ -85,6 +88,17 @@ const governanceSemanticChecks = [
       'Requirement Change During Execution',
       'Never dispatch from stale memory',
       'execution_settled',
+    ],
+  },
+  {
+    skill: 'dev-flow-cr',
+    label: 'independent CR command',
+    required: [
+      'cr_report_ready',
+      'Run only when the user explicitly requests CR',
+      'do not run automatically inside `/dev-flow`',
+      'Stay read-only for implementation files',
+      'CR Report',
     ],
   },
   {
@@ -172,10 +186,11 @@ function codexTargetRoot() {
 function codexCommandTarget() {
   const explicitTarget = flags.get('commands-target');
   if (typeof explicitTarget === 'string') {
-    return path.resolve(process.cwd(), explicitTarget);
+    const resolved = path.resolve(process.cwd(), explicitTarget);
+    return path.extname(resolved) ? path.dirname(resolved) : resolved;
   }
 
-  return path.join(homedir(), '.agents', 'commands', 'dev-flow.md');
+  return path.join(homedir(), '.agents', 'commands');
 }
 
 function claudeSkillsTargetRoot() {
@@ -190,10 +205,11 @@ function claudeSkillsTargetRoot() {
 function claudeCommandTarget() {
   const explicitTarget = flags.get('commands-target');
   if (typeof explicitTarget === 'string') {
-    return path.resolve(process.cwd(), explicitTarget);
+    const resolved = path.resolve(process.cwd(), explicitTarget);
+    return path.extname(resolved) ? path.dirname(resolved) : resolved;
   }
 
-  return path.join(homedir(), '.claude', 'commands', 'dev-flow.md');
+  return path.join(homedir(), '.claude', 'commands');
 }
 
 function parseFlags(items) {
@@ -295,7 +311,7 @@ async function installOrUpdate(action) {
 async function doctor() {
   const target = targetRoot();
   const required = [
-    'command/dev-flow.md',
+    ...commandFileNames.map((fileName) => `command/${fileName}`),
     ...collectCoreSkillFiles().map((relativePath) => `skills/${relativePath}`),
   ];
 
@@ -332,19 +348,24 @@ async function doctor() {
 
 async function installCodexAdapter(action) {
   const skillsTarget = codexTargetRoot();
-  const commandTarget = codexCommandTarget();
+  const commandsTarget = codexCommandTarget();
   const dryRun = flags.has('dry-run');
   const force = flags.has('force');
   const targets = [
     { label: 'skills', source: codexSkillsRoot, target: skillsTarget, type: 'dir' },
-    { label: 'command', source: codexCommandSource, target: commandTarget, type: 'file' },
+    ...commandFileNames.map((fileName) => ({
+      label: `command:${fileName}`,
+      source: path.join(codexCommandsSourceRoot, fileName),
+      target: path.join(commandsTarget, fileName),
+      type: 'file',
+    })),
   ];
 
   console.log(`Dev Flow Skills ${action}`);
   console.log(`Skills source: ${codexSkillsRoot}`);
   console.log(`Skills target: ${skillsTarget}`);
-  console.log(`Command source: ${codexCommandSource}`);
-  console.log(`Command target: ${commandTarget}`);
+  console.log(`Commands source: ${codexCommandsSourceRoot}`);
+  console.log(`Commands target: ${commandsTarget}`);
   if (dryRun) {
     console.log('Mode: dry-run');
   }
@@ -381,17 +402,17 @@ async function installCodexAdapter(action) {
     }
     await symlink(item.source, item.target, item.type);
   }
-  console.log('\nCodex skills and /dev-flow command installed. Restart Codex to discover them.');
+  console.log('\nCodex skills and /dev-flow commands installed. Restart Codex to discover them.');
 }
 
 async function doctorCodex() {
   const skillsTarget = codexTargetRoot();
-  const commandTarget = codexCommandTarget();
+  const commandsTarget = codexCommandTarget();
   const required = collectAllSkillFiles();
 
   console.log('Dev Flow Skills Codex Doctor');
   console.log(`Skills target: ${skillsTarget}`);
-  console.log(`Command target: ${commandTarget}\n`);
+  console.log(`Commands target: ${commandsTarget}\n`);
 
   let ok = existsSync(skillsTarget);
   console.log(`${ok ? '✓' : '✗'} ${skillsTarget}`);
@@ -402,11 +423,14 @@ async function doctorCodex() {
     console.log(`${exists ? '✓' : '✗'} ${relativePath}`);
   }
 
-  const commandExists = existsSync(commandTarget);
-  ok = ok && commandExists;
-  console.log(`${commandExists ? '✓' : '✗'} ${commandTarget}`);
+  for (const fileName of commandFileNames) {
+    const commandPath = path.join(commandsTarget, fileName);
+    const commandExists = existsSync(commandPath);
+    ok = ok && commandExists;
+    console.log(`${commandExists ? '✓' : '✗'} ${commandPath}`);
+  }
 
-  ok = checkCodexSemantics(skillsTarget, commandTarget) && ok;
+  ok = checkCodexSemantics(skillsTarget, commandsTarget) && ok;
 
   if (!ok) {
     process.exitCode = 1;
@@ -419,7 +443,7 @@ async function doctorCodex() {
 
 async function installClaudeAdapter(action) {
   const skillsTargetRoot = claudeSkillsTargetRoot();
-  const commandTarget = claudeCommandTarget();
+  const commandsTarget = claudeCommandTarget();
   const dryRun = flags.has('dry-run');
   const force = flags.has('force');
   const skillDirectories = collectSkillDirectories(claudeSkillsRoot);
@@ -430,14 +454,19 @@ async function installClaudeAdapter(action) {
       target: path.join(skillsTargetRoot, path.basename(source)),
       type: 'dir',
     })),
-    { label: 'command', source: claudeCommandSource, target: commandTarget, type: 'file' },
+    ...commandFileNames.map((fileName) => ({
+      label: `command:${fileName}`,
+      source: path.join(claudeCommandsSourceRoot, fileName),
+      target: path.join(commandsTarget, fileName),
+      type: 'file',
+    })),
   ];
 
   console.log(`Dev Flow Skills ${action}`);
   console.log(`Skills source: ${claudeSkillsRoot}`);
   console.log(`Skills target: ${skillsTargetRoot}`);
-  console.log(`Command source: ${claudeCommandSource}`);
-  console.log(`Command target: ${commandTarget}`);
+  console.log(`Commands source: ${claudeCommandsSourceRoot}`);
+  console.log(`Commands target: ${commandsTarget}`);
   if (dryRun) {
     console.log('Mode: dry-run');
   }
@@ -474,16 +503,16 @@ async function installClaudeAdapter(action) {
     }
     await symlink(item.source, item.target, item.type);
   }
-  console.log('\nClaude skills and /dev-flow command installed. Restart Claude Code to discover them.');
+  console.log('\nClaude skills and /dev-flow commands installed. Restart Claude Code to discover them.');
 }
 
 async function doctorClaude() {
   const skillsTargetRoot = claudeSkillsTargetRoot();
-  const commandTarget = claudeCommandTarget();
+  const commandsTarget = claudeCommandTarget();
 
   console.log('Dev Flow Skills Claude Doctor');
   console.log(`Skills target: ${skillsTargetRoot}`);
-  console.log(`Command target: ${commandTarget}\n`);
+  console.log(`Commands target: ${commandsTarget}\n`);
 
   let ok = existsSync(skillsTargetRoot);
   console.log(`${ok ? '✓' : '✗'} ${skillsTargetRoot}`);
@@ -494,11 +523,14 @@ async function doctorClaude() {
     console.log(`${exists ? '✓' : '✗'} ${relativePath}`);
   }
 
-  const commandExists = existsSync(commandTarget);
-  ok = ok && commandExists;
-  console.log(`${commandExists ? '✓' : '✗'} ${commandTarget}`);
+  for (const fileName of commandFileNames) {
+    const commandPath = path.join(commandsTarget, fileName);
+    const commandExists = existsSync(commandPath);
+    ok = ok && commandExists;
+    console.log(`${commandExists ? '✓' : '✗'} ${commandPath}`);
+  }
 
-  ok = checkClaudeSemantics(skillsTargetRoot, commandTarget) && ok;
+  ok = checkClaudeSemantics(skillsTargetRoot, commandsTarget) && ok;
 
   if (!ok) {
     process.exitCode = 1;
@@ -606,6 +638,12 @@ function checkInstalledOpenCodeSemantics(target) {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'OpenCode CR command contract',
+      filePath: path.join(target, 'command', 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'OpenCode master lightweight opsx contract',
       dirPath: path.join(target, 'skills', 'dev-flow-master'),
       required: [
@@ -628,12 +666,18 @@ function checkInstalledOpenCodeSemantics(target) {
   return ok;
 }
 
-function checkCodexSemantics(skillsTarget, commandTarget) {
+function checkCodexSemantics(skillsTarget, commandsTarget) {
   const checks = [
     {
       label: 'Codex command lightweight opsx contract',
-      filePath: commandTarget,
+      filePath: path.join(commandsTarget, 'dev-flow.md'),
       required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex CR command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
       forbidden: staleWorkflowPatterns,
     },
     {
@@ -659,12 +703,18 @@ function checkCodexSemantics(skillsTarget, commandTarget) {
   return ok;
 }
 
-function checkClaudeSemantics(skillsTargetRoot, commandTarget) {
+function checkClaudeSemantics(skillsTargetRoot, commandsTarget) {
   const checks = [
     {
       label: 'Claude command lightweight opsx contract',
-      filePath: commandTarget,
+      filePath: path.join(commandsTarget, 'dev-flow.md'),
       required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Claude CR command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
       forbidden: staleWorkflowPatterns,
     },
     {
@@ -711,15 +761,33 @@ function checkSourceSemantics() {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'packaged OpenCode CR command',
+      filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'packaged Codex command',
-      filePath: codexCommandSource,
+      filePath: path.join(codexCommandsSourceRoot, 'dev-flow.md'),
       required: opsxRequiredPhrases,
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'packaged Codex CR command',
+      filePath: path.join(codexCommandsSourceRoot, 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'packaged Claude command',
-      filePath: claudeCommandSource,
+      filePath: path.join(claudeCommandsSourceRoot, 'dev-flow.md'),
       required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Claude CR command',
+      filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-cr.md'),
+      required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
       forbidden: staleWorkflowPatterns,
     },
     {

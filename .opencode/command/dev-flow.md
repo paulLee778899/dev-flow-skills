@@ -12,7 +12,8 @@ Use `dev-flow-master` as the top-level controller for deciding:
 - whether a focused skill such as `dev-flow-debugging`, `dev-flow-ui-ux`, or `dev-flow-review` owns the next step
 - when `superpowers brainstorming` must happen
 - how the four Chinese planning docs should be governed
-- that Phase 2 Gate must show the default multi-agent/subagent execution mode after orchestration and Git checks
+- that Phase 2 Gate must show the proposed execution actor after orchestration and Git checks
+- that `/dev-flow-cr` is independent and must not run automatically inside `/dev-flow`
 - when a stage is actually ready to be reported complete
 - which focused `dev-flow-*` sub-skill owns the current stage
 

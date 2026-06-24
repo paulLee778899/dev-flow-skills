@@ -31,6 +31,7 @@ If any required capability or authorization is missing, use `patch-ready mode` a
 - Stage, commit, PR, review, or merge only if selected integration mode allows it.
 - Never share one working tree between concurrent task agents.
 - Do not run high-overlap writer tasks concurrently; split them into serial sub-waves before dispatch.
+- Tasks marked with `file_overlap: high` or `symbol_overlap: high` in task-orchestration.md must be serialized as writers even in worktree-parallel mode. Git isolation does not make overlapping implementation safe by itself. See `modes-and-states.md` for the full overlap-safe concurrency rules.
 
 ## Branch-Only Rules
 
@@ -118,7 +119,7 @@ Rollback after committed work requires safety check:
 
 Delete `task/*` branches only after verifying they are merged or no longer needed. Do not delete patch-ready or unmerged work without explicit approval.
 
-Never force-push, hard-reset shared work, amend pushed commits, bypass hooks, or perform destructive Git actions unless explicitly requested and safe under repo policy.
+Never force-push, hard-reset shared work, amend pushed commits, bypass hooks, or perform destructive Git actions unless BOTH conditions are met: (1) the user has explicitly requested it in the current message, AND (2) a protected-branch check passes (the target branch is not listed as a protected branch in the repo settings or CI configuration).
 
 ## Required Signal
 

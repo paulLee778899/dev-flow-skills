@@ -15,13 +15,34 @@ Do not force `worktree mode`. If a batch could use 2+ direct writing agents, rec
 
 Git isolation does not make overlapping implementation safe by itself. Tasks marked with `file_overlap: high` or `symbol_overlap: high` by `dev-flow-planning` must be serialized as writers even in `worktree mode`, unless the orchestration records a specific safe integration strategy.
 
+## Isolation Mode YAML Tokens
+
+When emitting the `git_safe` signal, use these exact `isolation_mode` values:
+
+| Prose name | isolation_mode token |
+|---|---|
+| Worktree mode | `worktree` |
+| Branch-only serial mode | `branch_serial` |
+| Shared-working-tree serial agent mode | `shared_serial` |
+| Shared-worktree patch mode | `patch` |
+
 ### Integration Mode
 
 - `PR/review/merge mode`: task branch → commit → PR → review → merge.
 - `solo-dev direct-commit mode`: local commit with equivalent self-review; no push/merge unless explicitly approved.
 - `patch-ready mode`: no stage/commit/push/PR/merge; report patch/diff-ready status and verification evidence.
+- `deferred`: Integration is intentionally postponed. The implementation is complete and committed in the isolation environment but has not been merged, pushed, or applied to any shared branch. Deferred integration requires an explicit re-entry into dev-flow-git to select and execute the final integration step.
 
 Default to `patch-ready mode` when Git side effects are not explicitly authorized or environment support is missing.
+
+## Integration Mode YAML Tokens
+
+| Prose name | integration_mode token |
+|---|---|
+| PR-based integration | `pr` |
+| Direct commit | `direct_commit` |
+| Patch ready (not yet applied) | `patch_ready` |
+| Deferred integration | `deferred` |
 
 ### Canonical Task Integration States
 

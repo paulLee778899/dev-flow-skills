@@ -1,6 +1,6 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Governed development-flow skills for AI coding agents.",
   "type": "module",
   "bin": {

@@ -5,6 +5,16 @@ description: Use when dev-flow execution batches are complete and the main agent
 
 # dev-flow-acceptance
 
+## Boundary
+
+This skill owns final readiness assessment, evidence collection, and delivery report generation.
+
+Does NOT execute tasks, modify code, or re-enter earlier phases.
+
+## Language Policy
+
+All user-facing replies in dev-flow are in Chinese.
+
 Own final acceptance after DAG batches or lightweight opsx/OpenSpec work are complete, deferred, or replanned. Acceptance decides readiness; it does not rely on chat memory or agent self-reporting.
 
 Use `superpowers:verification-before-completion` when available before claiming complete, fixed, passing, or ready.
@@ -18,3 +28,11 @@ Use `superpowers:verification-before-completion` when available before claiming 
 - Report `not-ready` or `ready-for-review` when required evidence is missing; do not claim completion.
 
 Read `references/readiness-and-report.md` before final verification, delivery report writing, failure recovery, readiness decisions, or emitting `acceptance_ready`.
+
+## References
+
+Load `references/readiness-and-report.md` for readiness checklist, report template, and signal schema.
+
+## Required Signal
+
+Emits `acceptance_ready`. Full schema defined in `references/readiness-and-report.md`.

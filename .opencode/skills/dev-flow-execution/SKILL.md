@@ -5,9 +5,23 @@ description: Use when Phase 3 has started and the agent must execute continuousl
 
 # dev-flow-execution
 
+## Boundary
+
+This skill owns Phase 3 continuous execution: task dispatch, sub-agent coordination, settlement, replanning, and recovery.
+
+Does NOT make architectural decisions, modify planning documents, or bypass Phase 1/2 gates.
+
+## Language Policy
+
+All user-facing replies in dev-flow are in Chinese.
+
+## Core Contract
+
 Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. Maintain Runtime Orchestration State, dispatch tasks under Git/writer limits, verify done signals, update progress, and move to acceptance when settled.
 
-## Run Contract
+## References
+
+Load `references/runtime-and-dispatch.md` for the run-to-completion loop and agent cap rules. Load `references/task-settlement-and-modes.md` for execution mode rules and settlement protocol. Load `references/replanning-and-recovery.md` for replan and recovery rules.
 
 - Execute continuously after Phase 2 approval; do not stop after a task, batch, progress update, patch-ready output, or automatic inside-baseline replan when safe to continue.
 - The main agent remains coordinator for task dispatch, Git boundaries, verification, progress, and integration.
@@ -27,3 +41,7 @@ Read `references/task-settlement-and-modes.md` before judging task completion, u
 Inside-baseline replanning is allowed and should continue automatically after artifacts are updated. Requirement or acceptance-baseline changes are governance events and require returning to planning/gates.
 
 Read `references/replanning-and-recovery.md` before changing orchestration, handling user requirement changes, recording fallbacks, updating `progress.md`, recovering after interruption, or emitting `execution_settled` / `review_evidence_ready`.
+
+## Required Signal
+
+Emits `execution_settled` when Phase 3 completes. Also produces `review_evidence_ready` (aggregated by dev-flow-acceptance). Full YAML schemas are in `dev-flow-master/references/state-and-gates.md` § Signal Schemas.

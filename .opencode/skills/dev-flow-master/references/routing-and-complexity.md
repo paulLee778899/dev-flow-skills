@@ -1,5 +1,12 @@
 # Routing And Complexity Reference
 
+## Table of Contents
+
+- [Core Skill Boundaries](#core-skill-boundaries)
+- [Intent Classification](#intent-classification)
+- [Complexity Classification](#complexity-classification)
+- [Lightweight OpenSpec / opsx Contract](#lightweight-openspec--opsx-contract)
+
 ## Core Skill Boundaries
 
 Dev-flow owns routing, governance, persisted artifacts, handoffs, and evidence contracts. It should not duplicate mature external skill workflows when they are available.
@@ -20,6 +27,7 @@ Reuse policy:
 | Execution | `dev-flow-execution` | Phase 3 run-to-completion, task settlement, Runtime Orchestration State, dynamic replanning, failure handling, progress updates |
 | Git safety | `dev-flow-git` | worktree/branch modes, PR/direct/patch-ready modes, permissions, conflicts, rollback, cleanup |
 | Acceptance | `dev-flow-acceptance` | final regression, quality evidence, delivery report, acceptance readiness |
+| Code review | `dev-flow-cr` | Post-acceptance independent CR; user-triggered only via /dev-flow-cr; produces cr_report_ready signal |
 
 Required loading rule: before stage-specific work, load the skill that owns that stage. Every new entry request must load `dev-flow-intent` before complexity classification unless the request is an explicit continuation inside a known phase and the current phase owner is already unambiguous. If areas overlap, the owner in the table above is authoritative. In particular, Git side effects are owned by `dev-flow-git`; execution may reference Git mode but must not invent Git permissions.
 
@@ -33,9 +41,9 @@ Before forcing the governed path, load `dev-flow-intent` and obtain `intent_deci
 |---|---|---|
 | `debugging` | `dev-flow-debugging` | Reproduce, gather evidence, find root cause, then route fix by complexity |
 | `feature` | `dev-flow-master` -> planning/execution owners | Use the normal complexity matrix and governed/lightweight path mapping |
-| `change-adjustment` | `dev-flow-master` + current phase owner | Recover context, classify baseline impact, re-enter planning/orchestration gate when needed |
+| `change-adjustment` | `dev-flow-master` + current phase owner | Recover context, classify baseline impact, re-enter Phase 1 Gate when the requirement baseline changes, or Phase 2 Gate when only orchestration or design changes |
 | `review` | `dev-flow-review` | Read-first, findings-first; do not edit unless user asks for fixes |
-| `ui-ux` | `dev-flow-ui-ux` | UI/UX-specific design and runtime verification, then normal gates if medium/heavy |
+| `ui-ux` | `dev-flow-ui-ux` | UI/UX-specific design and runtime verification, then normal gates if medium or heavyweight |
 | `status-recovery` | `dev-flow-master` | Reload persisted progress/orchestration/test/Git state before answering or continuing |
 | `question` | no governed owner by default | Answer directly or do read-only analysis unless user asks to enter dev-flow |
 
@@ -70,6 +78,8 @@ Routing rule:
 - Otherwise classify as **medium**.
 - If key information is unknown, inspect repo/spec context first. If still unknown and uncertainty affects safety, choose the higher-risk classification rather than under-governing.
 
+**Risk flag upgrade rule**: If `intent_decided` carries any of the following risk flags — `security`, `api_contract`, `data_migration`, or `release_ops` — treat the complexity of the affected dimension as at least `medium`, regardless of file-count or line-count heuristics, unless existing context explicitly demonstrates the risk is already bounded (e.g., change is isolated behind a feature flag, or migration is a no-op rollback). This prevents security-sensitive small changes from being misclassified as lightweight.
+
 Path mapping:
 
 - **Lightweight** → lightweight opsx/OpenSpec artifact path; do not generate the four governed Chinese docs unless reclassified.
@@ -83,7 +93,7 @@ Lightweight work must still use persisted OpenSpec/opsx artifacts. It must not e
 Use this contract:
 
 - owner: `dev-flow-master` routes; the focused route owner or main agent performs the small change.
-- artifact workflow: use the active project's OpenSpec/opsx change workflow, normally `/opsx:ff <change>` to create required artifacts, `/opsx:apply <change>` to implement, and `/opsx:verify <change>` to verify against artifacts. If a change already exists, use `/opsx:continue`, `/opsx:apply`, or `/opsx:verify` as appropriate.
+- artifact workflow: use the active project's OpenSpec/opsx change workflow, normally `/opsx:ff <change>` to create required artifacts, `/opsx:apply <change>` to implement, and `/opsx:verify <change>` to verify against artifacts. If a change already exists, use `/opsx:continue` when a change is already in-progress in OpenSpec, `/opsx:apply` to implement a finalized spec, or `/opsx:verify` to confirm an already-implemented change matches its spec.
 - required artifact evidence: change directory, generated artifact list, task/proposal/spec/design evidence as produced by the active OpenSpec schema, implementation status, verification output, Git/patch state, and unresolved risks.
 - Git boundary: use `dev-flow-git` before staging, committing, pushing, opening PRs, merging, rollback, or destructive actions.
 - verification: run the smallest command or manual/runtime check that proves the requested behavior; record skipped checks with reason.
@@ -98,3 +108,5 @@ Required routing output to the user:
 路径：<focused route | opsx/OpenSpec artifact | governed planning path | direct answer/read-only>
 下一步：<具体阶段>
 ```
+
+The routing summary block above is a required output whenever `routing_decided` is emitted. See `state-and-gates.md` for the full signal schema.

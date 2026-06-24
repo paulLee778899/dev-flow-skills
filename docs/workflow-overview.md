@@ -43,3 +43,7 @@ At Phase 2 Gate, the master presents orchestration results, overlap risks, Git c
 ## Requirement changes during execution
 
 If the user's requirement or goal changes during execution, the agent must return to planning before continuing implementation. The task orchestration and test matrix must be updated and confirmed before execution resumes.
+
+## Post-Delivery: Code Review (`/dev-flow-cr`)
+
+After `acceptance_ready` is emitted and the delivery report is complete, the team may run `/dev-flow-cr` to perform a scored code review. This is an independent command — it does not block delivery but provides a quantified quality signal. The skill emits `cr_report_ready` with an overall score, per-severity finding counts, and a blocking status (`cr_blocked` | `cr_passed` | `cr_needs_defer_decision`). If `cr_blocked`, do not merge or ship until P0/P1 findings are resolved.

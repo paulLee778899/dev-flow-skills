@@ -63,9 +63,27 @@ Completed work classification:
 - `still valid`: keep and update downstream dependencies
 - `needs adapter`: keep and add adapter/integration test task
 - `superseded`: keep history, do not count as satisfying new task
-- `must rollback`: hard-stop if rollback is destructive or needs approval; otherwise follow `dev-flow-git` safe rollback rules
+- `must rollback`: hard-stop if rollback is destructive or needs approval; otherwise follow `dev-flow-git` safe rollback rules. A rollback is considered destructive if it would remove commits that are already pushed to a shared branch, delete files not tracked in the task's original scope, or modify more than 3 files outside the task's declared file_overlap list. The main agent (not dev-flow-git) emits the hard-stop notification and presents options to the user. After user confirmation, invoke dev-flow-git to execute the safe rollback.
 
 Every automatic adjustment must appear in `dev-flow-state.md`, `progress.md`, and final acceptance report with a short reason. Replanning must not become silent scope creep.
+
+### Automatic Replan Counter
+
+Initialize `replan_count = 0` in `dev-flow-state.md` and `progress.md` at Phase 3 start. Increment by 1 after each automatic inside-baseline replan. Maximum automatic replans: **3**.
+
+On reaching the cap (replan_count = 3), emit a **hard-stop**. Present the user with the full replan chain:
+
+- what was originally planned
+- what was discovered at each replan
+- why replanning was needed each time
+
+Then ask the user to choose one of:
+
+- (a) continue with revised scope (user approves the current replan as the final one)
+- (b) escalate to Phase 2 Gate for full replanning
+- (c) abort
+
+Do NOT auto-continue. Wait for explicit user selection before dispatching any further tasks.
 
 Requirement change gate rules:
 
@@ -144,7 +162,7 @@ Mandatory recovery checks:
 - If `dev-flow-state.md` or `progress.md` records requirement change, `stale-pending`, gate re-entry, failed/blocked task, rollback, skip/defer decision, or pause, resume that recovery path first.
 - If a task is marked done but its changed files/tests/evidence are missing, treat it as not settled and re-verify before advancing.
 - If a task is marked done but task self-review, required UI/UX evidence, or canonical Git integration state is missing, treat it as not settled for acceptance.
-- If a task is marked running but no task agent is active, classify it as interrupted and either resume the same task context or retry without counting it as a task failure until a final signal exists.
+- If a task is marked running but no task agent is active, classify it as interrupted and either resume the same task context or retry without counting it as a task failure until a final signal exists. After **2 resume attempts** without a final signal, stop retrying: mark the task `final_failed` and record `interrupted_without_resolution` as the failure reason. Do not loop indefinitely on interrupted tasks.
 - If documents changed after Runtime Orchestration State was last built, rebuild DAG, batches, Executable Test Matrix, and current execution pointer.
 - Rewrite `dev-flow-state.md` and `progress.md` after reconciliation and before dispatching more work.
 

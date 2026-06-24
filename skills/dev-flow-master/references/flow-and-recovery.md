@@ -12,6 +12,8 @@
 
 ## When to Use
 
+以下触发场景仅供参考，不作为路由决策的规范来源。路由分类的权威定义在 `dev-flow-intent/references/classification-reference.md`。
+
 Use this skill when the user asks for dev-flow or when a development request may need dev-flow routing, for example:
 
 - “先按规范走一下”
@@ -111,7 +113,7 @@ Recovery rules:
 
 - If `dev-flow-state.md` records an unresolved gate, missing approval, stale signal, or required repair, resume that recovery point before planning, execution, Git, or acceptance.
 - If `progress.md` says a requirement change, stale task, failed task, skipped task, rollback, pause, or gate re-entry is pending, resume at that recovery point instead of dispatching new work.
-- If `dev-flow-state.md`, `task-orchestration.md`, and `progress.md` disagree, route to the current phase owner to reconcile before continuing.
+- If `dev-flow-state.md`, `task-orchestration.md`, and `progress.md` disagree, route to the current phase owner to reconcile before continuing. If the phase owner cannot reconcile the disagreement after one attempt, emit a hard-stop. Present the user with: (1) what each source (Git/fs vs persisted files) says, (2) which source is authoritative per the priority chain, and (3) a recommendation. Do not attempt recursive re-routing.
 - If actual Git/filesystem state contradicts documents, actual state is highest priority and must be reconciled into `progress.md` before continuing.
 - Chat memory is lowest priority and must not override persisted artifacts or actual state.
 

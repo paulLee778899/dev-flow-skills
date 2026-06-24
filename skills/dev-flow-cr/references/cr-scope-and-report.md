@@ -1,5 +1,9 @@
 # CR Scope And Report Reference
 
+## Language Policy
+
+All CR report output must be in Chinese.
+
 ## Scope Selection
 
 Use this order when the user does not provide an explicit scope:
@@ -27,7 +31,7 @@ Create parent directories only for the report path.
 
 | Severity | Meaning | Blocking |
 |---|---|---|
-| `P0` | Data loss, security breach, production outage, destructive migration, or impossible rollback. | Blocks merge/release. |
+| `P0` | Data loss, security breach, production outage, destructive migration, impossible rollback, or broken API contract that would cause runtime failure or data loss. | Blocks merge/release. |
 | `P1` | Likely user-visible bug, broken build/test, contract break, serious regression, or missing critical test. | Blocks merge/release. |
 | `P2` | Edge-case bug, maintainability risk, incomplete coverage, confusing behavior, moderate operational risk. | Fix or explicitly defer. |
 | `P3` | Polish, small cleanup, naming, non-blocking documentation, optional improvement. | Non-blocking. |
@@ -44,7 +48,7 @@ Start at 100 and subtract:
 - P3: 2 each
 - Missing essential review evidence: 5-15 depending on risk
 
-Floor the score at 0. A report with any P0 or P1 is `cr_blocked` even if the numeric score is high. A report with no P0/P1 and score >= 90 is `cr_passed`.
+Floor the score at 0. A report with any P0 or P1 is `cr_blocked` even if the numeric score is high. A report with no P0/P1 and score >= 90 is `cr_passed`. `cr_needs_defer_decision` is triggered when: no P0 or P1 findings AND overall score is between 0 and 89 (inclusive). The delivery or merge decision is not automatic — the team must explicitly decide whether to accept the risk, address the findings, or defer to a follow-up CR.
 
 ## Required Report Shape
 
@@ -67,6 +71,8 @@ Write the report in Chinese using this structure:
 |---|---|---|---|---|---|
 | P1 | ... | ... | file:line / command / artifact | ... | blocking |
 
+Valid values for the `状态` column: P0/P1 findings → `blocking`; P2 findings → `fix_required` or `deferred`; P3 findings → `non-blocking` or `acknowledged`.
+
 ## Verification Notes
 - Commands inspected or recommended:
 - Tests missing or not run:
@@ -81,4 +87,4 @@ If no issues are found, keep the findings table with a single `无阻断问题` 
 
 ## Required Signal
 
-Emit `cr_report_ready` with: report path, review scope, evidence reviewed, score, status, P0/P1/P2/P3 counts, blocking findings, defer-needed findings, commands inspected or recommended, review limits, and next recommended owner.
+Emit `cr_report_ready` with: producer, timestamp (ISO-8601), report path, review scope, evidence reviewed, score, status, P0/P1/P2/P3 counts, blocking findings, defer-needed findings, commands inspected or recommended, review limits, and next recommended owner.

@@ -69,4 +69,16 @@ intent_decided:
   next_step: reproduce_the_failure
 ```
 
+Field descriptions:
+
+- `task_type`: primary classified intent type (see Task Types table).
+- `secondary_types`: additional intent types that apply but did not win the tie-breaker.
+- `confidence`: `high`, `medium`, or `low` — how certain the classification is.
+- `evidence`: short list of signals from the user's words or persisted artifacts that support the classification.
+- `risk_flags`: zero or more flags from the Risk Flags list that apply to this request.
+- `action_mode` (optional): how the classified intent should be executed. Values: `investigate_then_fix` (gather information before implementing), `implement_directly` (implement without investigation phase), `review_only` (produce assessment without implementation).
+- `recommended_route`: the dev-flow skill or path that should handle this request.
+- `required_protocols`: ordered list of protocols the handling skill must follow.
+- `next_step`: the first concrete action the handling skill should take.
+
 Keep evidence short and tied to the user's words or persisted artifacts. Do not expose speculative internal reasoning.

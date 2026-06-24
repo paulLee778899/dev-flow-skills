@@ -7,6 +7,10 @@ description: Use when governed dev-flow work needs planning documents, document 
 
 Own governed planning before execution: pre-document clarification, Phase 1 four Chinese planning documents, and Phase 2 task orchestration. Produce and persist `documentation_start_approved`, `planning_docs_ready`, and `task_orchestration_ready` in `dev-flow-state.md`.
 
+## Boundary
+
+This skill owns Phase 1 document production (PRA, HLD, DDD, test plan), the pre-documentation gate, and the Executable Test Matrix. Does NOT execute tasks or make runtime decisions.
+
 ## Core Contract
 
 - Do not draft formal documents immediately after routing into governed planning. Clarify first and obtain explicit document-start approval.
@@ -20,6 +24,10 @@ Own governed planning before execution: pre-document clarification, Phase 1 four
 - Read `references/pre-documentation-gate.md` before asking clarification questions, recording assumptions, or emitting `documentation_start_approved`.
 - Read `references/phase-1-documents.md` before creating or revising the four governed documents, choosing templates, selecting product/software requirement variant, or presenting Phase 1 Gate.
 - Read `references/task-orchestration.md` before creating DAG tasks, batches, test matrix, automation readiness checks, or `task_orchestration_ready`.
+
+## Language Policy
+
+All user-facing replies in dev-flow are in Chinese.
 
 ## Required Output
 

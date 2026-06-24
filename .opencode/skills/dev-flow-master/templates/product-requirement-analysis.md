@@ -138,6 +138,8 @@
 
 # 4. 功能规格
 
+> **Note:** the examples below use IoT domain terminology as illustration. Replace all domain-specific placeholders (mesh, MQTT, gateway, etc.) with terms appropriate to your project domain before filling in this template.
+
 ## 4.1 功能需求
 
 建议按模块、能力域或产品组成分类列出功能需求。以下为可替换的预置示例：

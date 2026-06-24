@@ -50,10 +50,28 @@ debugging_report:
     - "..."
   required_followup:
     - "ui-ux" # include when UI runtime verification must follow the fix
-  recommended_next_route: "lightweight_fix | governed_planning | ui-ux | change_adjustment"
+  recommended_next_route: "dev-flow-master | dev-flow-master lightweight | ui-ux | change-adjustment"
 ```
 
+Canonical values for `recommended_next_route`:
+- `dev-flow-master`: standard governed path (master receives the report and decides whether to invoke governed planning)
+- `dev-flow-master lightweight`: opsx-based lightweight fix; master validates that the fix scope qualifies
+- `ui-ux`: bug is a UI rendering issue requiring `dev-flow-ui-ux` verification
+- `change-adjustment`: user changed requirements during debugging
+
+Note: `governed_planning` is not a valid value. Governed planning is triggered by `dev-flow-master` after it receives the `debugging_report`; the debugging skill routes to master, not directly to governed planning.
+
+When `recommended_next_route` is `dev-flow-master lightweight`, always emit the full `debugging_report` signal before returning to master. Do not skip signal emission for lightweight routes — the signal carries `fix_scope` evidence that master needs to validate the lightweight path is appropriate.
+
 If evidence is incomplete, say exactly what is missing and whether the next step is safe.
+
+## Escalation Threshold
+
+If reproduction fails after 3 distinct reproduction attempts, stop evidence gathering. Document each attempt with its setup conditions and observed result. Declare the bug `non-reproducible` in the debugging report and route back to dev-flow-master with recommendation: (a) gather more information from the user, (b) add instrumentation and re-trigger, or (c) accept as known intermittent issue with a monitoring ticket.
+
+## Intermittent / Flaky Failures
+
+If the bug reproduces in fewer than 3 out of 5 attempts, classify as intermittent. Record reproduction rate and environmental variables. Do not mark as `fix_confirmed` unless the fix causes 0 reproductions in 5 attempts under identical conditions.
 
 ## UI Bugs
 

@@ -22,13 +22,13 @@ Every task must include:
 - scope: files/modules affected
 - implementation scope: what may change and what must not change
 - dependencies: explicit list; root tasks must use an empty list and be marked `root: true`
-- parallel safety: `file_overlap` (`none`, `low`, `high`), `symbol_overlap` (`none`, `low`, `high`), overlap notes, and forced-serial reason when applicable
+- parallel safety: `file_overlap` (`none`, `low`, `high`), `symbol_overlap` (`none`, `low`, `high`), overlap notes, and forced-serial reason when `file_overlap` or `symbol_overlap` is `high`, or when the orchestration records another safe-integration constraint
 - effort estimate: S / M / L
 - acceptance criteria
 - required diagnostics: `lsp_diagnostics`, lint/typecheck/static checks, or explicit N/A with reason
 - required tests: concrete unit/integration/E2E/API/browser/security/performance commands, or explicit N/A with reason
 - affected regression scope
-- quality gates: source/docs, API contract, UI/browser, security, performance, migration/deprecation, release/rollback where applicable
+- quality gates: list each category and mark N/A with a one-line reason for each excluded gate — categories: source/docs, API contract, UI/browser, security, performance, migration/deprecation, release/rollback
 - rollback / recovery note
 - done signal: changed files, commands run, pass/fail summary, task self-review evidence, and one canonical Git integration state from `dev-flow-git`
 
@@ -42,7 +42,7 @@ Batch 2 (parallel): T-03       ← depends on Batch 1
 Batch 3 (parallel): T-04, T-05 ← depends on T-03
 ```
 
-If a batch exceeds the agent cap later defined by `dev-flow-execution`, execution may split it into sub-waves without changing logical dependency ordering.
+If a batch exceeds the agent cap (default: 5 parallel sub-agents per batch, defined in `dev-flow-execution/references/task-settlement-and-modes.md`), execution may split it into sub-waves without changing logical dependency ordering.
 
 Parallel safety rules:
 

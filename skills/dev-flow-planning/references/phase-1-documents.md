@@ -90,7 +90,7 @@ Before Phase 1 Gate, verify:
 
 - HLD and DDD use required template structure
 - protocol/interface-heavy triggers were evaluated
-- if protocol/API/stateful/cross-module work exists, HLD covers functional/workflow guidance and DDD covers concrete protocol design, API description, data, error, state, sequence, compatibility, security, observability, and test points where applicable
+- if protocol/API/stateful/cross-module work exists, HLD covers functional/workflow guidance and DDD covers concrete protocol design, API description, data, error, state, sequence, compatibility, security, observability, and test points when the DDD scope includes that protocol, API, state machine, or integration surface
 - framework/library choices that affect implementation are backed by official docs/source or existing project patterns
 - UI work records accessibility, responsive behavior, loading/error/empty states, and browser-runtime verification expectations
 - security-sensitive work records auth/authz/input validation/secret handling/error boundaries
@@ -101,9 +101,11 @@ Before Phase 1 Gate, verify:
 
 If this fails, mark documents `not-ready` and revise before Phase 1 Gate.
 
+If the same document fails the Design Sufficiency Gate more than **3 times** without satisfactory revision, emit a hard-stop and ask the user whether to: (a) narrow the scope to remove the unresolvable section, (b) mark the section as a known TBD with an explicit deferral, or (c) abort the governed path and re-classify. Do not allow unbounded revision loops.
+
 ### Diagram Governance
 
-For formal product/system documents, diagrams are governed assets. Use `.drawio` editable source + `.svg` publishable asset + Markdown SVG reference when needed. Mermaid is acceptable only for quick internal sketches.
+For formal product/system documents, diagrams are governed assets. Use `.drawio` editable source + `.svg` publishable asset + Markdown SVG reference when the document includes architecture, protocol flow, or state-machine diagrams. Mermaid is acceptable only for quick internal sketches.
 
 ### Revision Loop
 

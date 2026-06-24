@@ -4,9 +4,14 @@
 
 - [Task Settlement and Final Signal Protocol](#task-settlement-and-final-signal-protocol)
 - [Shared-Worktree Patch Execution](#shared-worktree-patch-execution)
+- [Worktree-Parallel Execution](#worktree-parallel-execution)
 - [Shared-Working-Tree Serial Agent Execution](#shared-working-tree-serial-agent-execution)
 - [Per-Task Rules](#per-task-rules)
 - [Failure Handling](#failure-handling)
+
+## Terminology
+
+**Sub-wave**: A subset of tasks within a batch dispatched together for parallel execution (see sub-wave definition in runtime-and-dispatch.md).
 
 ## Task Settlement and Final Signal Protocol
 
@@ -59,15 +64,38 @@ Main-agent apply loop:
 3. Before each apply, re-read or inspect the actual target files as needed.
 4. Apply exactly one patch/task to the shared working tree.
 5. Run that task's required diagnostics/tests.
-6. If the patch no longer applies cleanly, reconcile it against current state or ask the same task context for a refreshed patch; do not mark the task failed merely because earlier patches changed the file.
+6. If the patch no longer applies cleanly, reconcile it against current state or ask the same task context for a refreshed patch; do not mark the task failed merely because earlier patches changed the file. Maximum reconciliation attempts: 2. If the patch still does not apply cleanly after 2 attempts, emit `final_failed` with reason `patch_reconciliation_failed` and stop retrying.
 7. Update Runtime Orchestration State and `progress.md` after each applied patch.
 8. Continue applying the next patch until the sub-wave is settled.
 
 In this mode, a sub-agent's patch-ready output is an intermediate deliverable. The task is complete only after the main agent applies and verifies it in the shared working tree.
 
+## Worktree-Parallel Execution
+
+When `dev-flow-git` selects worktree-based parallel execution, each writing task agent receives an isolated worktree and may implement concurrently up to the agent cap.
+
+Sub-agent task prompt requirements in this mode:
+
+- Task ID and description
+- Scope: declared file paths and symbols
+- Worktree path assigned to this task
+- Dependencies: list of task IDs that must be settled before this task begins
+- Quality gate requirements: which diagnostics/tests must pass
+- Final signal schema: must emit `final_success`, `final_failed`, or `final_blocked`
+- Git scope boundary: the sub-agent must not push to, merge into, or write to any branch outside its assigned worktree. Any attempt to perform cross-worktree Git operations (push, force-push, merge, rebase on shared branches) must be treated as a task failure.
+
 ## Shared-Working-Tree Serial Agent Execution
 
 When `dev-flow-git` selects `shared-working-tree serial agent mode`, task sub-agents may directly implement in the current local checkout without worktrees or task branches, but writing is strictly serial.
+
+Sub-agent task prompt requirements in this mode:
+
+- Task ID and description
+- Scope: declared file paths and symbols
+- Confirmation that the writer lane is free before starting (previous task settled)
+- Dependencies: list of task IDs that must be settled before this task begins
+- Quality gate requirements: which diagnostics/tests must pass
+- Final signal schema: must emit `final_success`, `final_failed`, or `final_blocked`
 
 Execution rules:
 
@@ -110,3 +138,44 @@ If any task settled with `final_failed` or `final_blocked`:
 - after 3 failed attempts, hard-stop for user recovery: retry, skip, rollback, or pause
 
 Skipped tasks prevent final `ready-to-report` unless explicitly accepted as deferred scope by the user or an approved gate, downstream dependencies are resolved by redesign/stub/mock/follow-up, and `dev-flow-state.md` plus the delivery report list the deferral and accepted risk.
+
+### final_success Return Schema
+
+```yaml
+final_success:
+  task_id: <string>
+  status: final_success
+  changed_files: [list of paths]
+  diagnostics: <output or "clean">
+  tests_run: [list of test names or suites]
+  quality_evidence: <description or path>
+  git_state: <canonical integration state or "none — patch pending">
+  patch_state: <patch file path or "none — direct write">
+```
+
+Note: `replan_count` is tracked by the coordinator in `dev-flow-state.md` and is included in the `execution_settled` signal, not in individual task `final_success` signals.
+
+### final_failed Return Schema
+
+```yaml
+final_failed:
+  task_id: <string>
+  status: final_failed
+  failure_reason: <one-line description>
+  attempted_approaches: [list of what was tried]
+  changed_files: [list or none — partial changes if any]
+  diagnostics: <output or none>
+  recommended_action: retry | skip | escalate | replan
+```
+
+### final_blocked Return Schema
+
+```yaml
+final_blocked:
+  task_id: <string>
+  status: final_blocked
+  blocker_description: <one-line description>
+  blocker_type: missing_dependency | permission_denied | scope_conflict | unresolvable_conflict | other
+  changed_files: none
+  recommended_action: replan | escalate_to_user | skip
+```

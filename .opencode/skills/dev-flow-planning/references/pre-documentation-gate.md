@@ -28,7 +28,7 @@ Required behavior:
 1. Summarize the current understanding of the request in Chinese.
 2. Ask structured clarification questions for information that would materially affect requirements, design, tests, technology choices, delivery risk, or acceptance.
 3. Separate questions into **blocking** and **non-blocking**.
-4. Do not draft documents while blocking questions remain unanswered.
+4. Do not draft documents while blocking questions remain unanswered. If a blocking question receives no answer after 2 reminder prompts within the same session, offer the user three options: (a) provide the missing information now, (b) accept the uncertainty as a known risk and proceed with a documented assumption, or (c) pause the flow. Do not silently proceed or loop indefinitely. If the user selects pause: write a `gate_paused` entry to `dev-flow-state.md` with fields: `gate: pre-documentation`, `paused_at: <timestamp>`, `blocking_questions: [list]`, `resume_condition: user provides answers`. This ensures context recovery can distinguish a paused gate from one that was never entered.
 5. For non-blocking unknowns, either ask the user to answer them now or explicitly ask whether they accept recording them as assumptions/open issues.
 6. Ask for explicit approval to start drafting documents after the clarification state is resolved.
 

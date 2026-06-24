@@ -5,11 +5,15 @@ description: Use when a development request involves user-facing screens, layout
 
 # dev-flow-ui-ux
 
-Own the UI/UX route when the main success criterion is what a user sees, understands, or interacts with. All user-facing replies in dev-flow are Chinese.
+Own the UI/UX route when the main success criterion is what a user sees, understands, or interacts with.
 
 ## Boundary
 
 Do not replace `dev-flow-master` for routing, complexity, gates, Git side effects, or final completion. Broken UI behavior routes to debugging first. UI work that adds substantial business behavior should be primary feature work unless visual/interaction quality is the main acceptance criterion.
+
+## Language Policy
+
+All user-facing replies in dev-flow are in Chinese.
 
 ## Core Contract
 
@@ -18,4 +22,21 @@ Do not replace `dev-flow-master` for routing, complexity, gates, Git side effect
 - Runtime UI risk requires `ui_ux_report` before acceptance.
 - Browser/runtime evidence is required when visual correctness is central; if blocked, record why and the residual risk.
 
-Read `references/ui-verification.md` before choosing UI path, implementing UI-specific checks, producing `ui_ux_report`, or coordinating with debugging/planning/acceptance.
+## References
+
+- `references/ui-verification.md`: Load before choosing the UI path, implementing UI-specific checks, producing `ui_ux_report`, or coordinating with debugging/planning/acceptance.
+
+## Required Signal
+
+```yaml
+ui_ux_report:
+  producer: dev-flow-ui-ux
+  timestamp: <ISO-8601>
+  scope: <what was verified>
+  blocked_count: <integer>
+  visual_evidence_attached: true | false
+  acceptance_threshold_met: true | false
+  residual_risks: [list or none]
+```
+
+This is the orchestration summary signal. The full persisted report schema is in `references/ui-verification.md`.

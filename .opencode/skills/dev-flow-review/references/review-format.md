@@ -25,6 +25,7 @@ Use this structure:
 
 ```text
 发现：
+- [P0] <问题标题> — <文件:行>。<风险和证据>。<建议方向>
 - [P1] <问题标题> — <文件:行>。<风险和证据>。<建议方向>
 - [P2] ...
 
@@ -39,7 +40,7 @@ If no issues are found, say that clearly and mention remaining test gaps or revi
 
 ## Severity
 
-- `P0`: data loss, security breach, production outage, or impossible rollback.
+- `P0`: Correctness blocker — must fix before any merge or deployment. Examples: data corruption, security vulnerability, production outage trigger, broken API contract that would cause runtime failure or data loss. Note: a broken API contract elevates to P0 only when it would cause a production outage or data corruption — otherwise it is P1.
 - `P1`: likely user-visible bug, broken build/test, contract break, or serious regression.
 - `P2`: maintainability, missing edge-case coverage, confusing behavior, or moderate risk.
 - `P3`: polish, small cleanup, documentation, or non-blocking suggestion.

@@ -20,7 +20,7 @@ Governed work must maintain persisted state from the first planning gate onward:
 
 Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed documents. If a legacy flat artifact set already exists, keep using that legacy location and record the chosen path in `dev-flow-state.md`.
 
-`dev-flow-state.md` must record every signal below with: signal name, producer, timestamp or ordering marker, evidence paths, gate status, user approval text where applicable, and stale/repair notes. Chat memory is never sufficient evidence for a governed signal or user approval.
+`dev-flow-state.md` must record every signal below with: signal name, producer, timestamp or ordering marker, evidence paths, gate status, user approval text when the signal records a gate passage or an authorization event, and stale/repair notes. Chat memory is never sufficient evidence for a governed signal or user approval.
 
 | Signal | Produced by | Required evidence |
 |---|---|---|
@@ -35,9 +35,76 @@ Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed doc
 | `git_safe` | `dev-flow-git` | isolation mode, integration mode, permission/capability result, side-effect boundary |
 | `execution_actor_decided` | `dev-flow-master` | proposed execution actor shown at Phase 2 Gate, user approval or override, and writer concurrency boundary |
 | `ui_ux_report` | `dev-flow-ui-ux` | target surface, runtime/browser evidence or blocked reason, interaction/responsive/accessibility result |
-| `review_evidence_ready` | `dev-flow-execution` or `dev-flow-acceptance` | task self-review evidence for integrated work; independent CR is separate `/dev-flow-cr` evidence |
+| `review_evidence_ready` | `dev-flow-acceptance` | task self-review evidence for integrated work; independent CR is separate `/dev-flow-cr` evidence. Note: dev-flow-execution may write task-level self-review artifacts; dev-flow-acceptance aggregates these into the canonical review_evidence_ready signal. Only dev-flow-acceptance may emit the final form. |
 | `execution_settled` | `dev-flow-execution` | batch/task status, Runtime Orchestration State summary, replan history, test/diagnostic evidence, unresolved blockers |
 | `acceptance_ready` | `dev-flow-acceptance` | final test results, quality evidence, delivery report path, Git/patch states, unresolved follow-ups |
+| `cr_report_ready` | `dev-flow-cr` | cr report file path, overall score, highest severity finding, blocking status (cr_blocked \| cr_passed \| cr_needs_defer_decision), review scope description |
+| `debugging_report` | `dev-flow-debugging` | bug_id, reproduction_confirmed, root_cause, fix_scope (contained \| moderate \| broad), recommended_next_route, evidence_paths |
+
+### Signal Schemas
+
+```yaml
+routing_decided:
+  producer: dev-flow-master
+  timestamp: <ISO-8601>
+  complexity: lightweight | medium | heavyweight
+  primary_skill: <skill name>
+  opsx_required: true | false
+  risk_flags: [list]
+  rationale: <one line>
+```
+
+```yaml
+git_safe:
+  producer: dev-flow-git
+  timestamp: <ISO-8601>
+  isolation_mode: worktree | branch_serial | shared_serial | patch
+  integration_mode: pr | direct_commit | patch_ready | deferred
+  writer_concurrency_limit: <integer>
+  allowed_side_effects: [list]
+  forbidden_side_effects: [list]
+  capability_permission_check: passed | blocked
+  rollback_constraints: <description or none>
+  unresolved_git_blockers: [list or none]
+  allowed_canonical_integration_states: [list]
+```
+
+```yaml
+execution_settled:
+  producer: dev-flow-execution
+  timestamp: <ISO-8601>
+  all_tasks_final: true | false
+  failed_tasks: [list of task ids or none]
+  blocked_tasks: [list of task ids or none]
+  replan_count: <integer>
+  git_integration_state: <canonical state name>
+  quality_evidence_paths: [list of file paths]
+  unresolved_blockers: [list of task ids or none]
+```
+
+```yaml
+acceptance_ready:
+  producer: dev-flow-acceptance
+  timestamp: <ISO-8601>
+  path: lightweight | governed
+  checklist_passed: true
+  delivery_report_path: <path or none>
+  openspec_change_path: <path or none>
+  git_integration_state: <canonical state name>
+  quality_evidence_paths: [list of file paths]
+  outstanding_deferred: [list of task ids or none]
+```
+
+```yaml
+execution_actor_decided:
+  producer: dev-flow-master
+  timestamp: <ISO-8601>
+  execution_mode: worktree_parallel | shared_worktree_patch | shared_working_tree_serial
+  writer_concurrency_limit: <integer>
+  writer_concurrency_approved: true | false
+  effective_fallback_rules: <description or none>
+  git_safe_reference: <timestamp of the git_safe signal this decision is based on>
+```
 
 Gate rules:
 
@@ -50,6 +117,7 @@ Gate rules:
 - Do not enter Phase 3 until Phase 2 Gate has presented the proposed execution actor and recorded `execution_actor_decided`.
 - Do not enter acceptance until execution reports all batches completed, user/gate-accepted as deferred, or replanned under `execution_settled`.
 - Do not report `ready-to-report` without `acceptance_ready`.
+- For `cr_report_ready`: if `cr_blocked` → do not merge/ship; else → proceed to delivery or defer. If `cr_needs_defer_decision`: present the deferred findings to the user with their severity scores and ask for an explicit accept/defer/fix decision before proceeding to merge or delivery.
 
 If a signal is missing, stale, or contradicted by actual Git/filesystem/task state, route back to the owning skill for repair before advancing. Chat memory is never sufficient evidence.
 
@@ -93,6 +161,8 @@ After `dev-flow-planning` produces and persists the four planning documents, sto
 
 Do not enter task orchestration until the user explicitly approves with “同意”, “开始”, “继续”, “proceed”, “go ahead”, “实施”, or equivalent.
 
+If the user rejects the documents at Phase 1 Gate, enter the Revision Loop in `phase-1-documents.md`. The rejection counts as one revision cycle toward the 3-cycle cap. Record the rejection reason in `dev-flow-state.md` under the `phase1_gate` entry. If the user provides no specific direction, ask what needs to change before proceeding.
+
 ### Phase 2 Gate — Task Orchestration and Git Safety
 
 After `dev-flow-planning` writes `task-orchestration.md` and `dev-flow-git` emits `git_safe`, stop and present:
@@ -105,9 +175,22 @@ After `dev-flow-planning` writes `task-orchestration.md` and `dev-flow-git` emit
 - execution mode, presented in Chinese:
   - `执行方式建议：基于当前 DAG、文件/符号重叠和 Git 安全边界，建议使用 <主线程串行 | 串行 subagent | patch-ready 并发分析 | 用户授权后的并发写入>。不会强制创建 worktree；如建议并发直接写入，需要你明确同意隔离方式。未授权时将使用串行写入或 shared-worktree patch mode。`
 
-Before user approval, record the proposed execution actor in `dev-flow-state.md` as `execution_actor_proposed`. After explicit Phase 2 execution approval, emit `execution_actor_decided` with: proposed mode, effective fallback rules, user override if any, the approval text, and whether any concurrent writing and worktree creation were explicitly approved.
+Before user approval, record the proposed execution actor in `dev-flow-state.md` as `execution_actor_proposed`:
+
+```yaml
+execution_actor_proposed:
+  produced_by: dev-flow-master
+  timestamp: <ISO-8601>
+  proposed_execution_mode: worktree_parallel | shared_worktree_patch | shared_working_tree_serial
+  proposed_writer_concurrency_limit: <integer>
+  pending_gate_approval: true
+```
+
+After explicit Phase 2 execution approval, emit `execution_actor_decided` with: proposed mode, effective fallback rules, user override if any, the approval text, and whether any concurrent writing and worktree creation were explicitly approved.
 
 Do not enter Phase 3 until the user explicitly says to start execution, for example “开始执行”, “执行”, “start”, “go”, or equivalent. That approval accepts only the displayed execution mode; direct concurrent writers and worktree creation require explicit approval when they are part of the proposal.
+
+If Phase 2 Gate fails (git_safe is blocked or task_orchestration_ready is insufficient), master must emit a `phase2_gate_failed` note into `dev-flow-state.md` with fields: `reason` (blocked_signal name), `blocking_detail` (what failed), and `recovery_options` (fix git config / reduce task scope / re-run planning). Do not silently stall.
 
 ## Completion Gate
 
@@ -121,7 +204,7 @@ For governed medium/heavy work, the master may report `ready-to-report` only aft
 
 1. required planning docs exist as files
 2. Phase 1 and Phase 2 gates were explicitly cleared and recorded in `dev-flow-state.md`
-3. `dev-flow-state.md`, `task-orchestration.md`, `progress.md`, and `delivery-report.md` exist where applicable
+3. `dev-flow-state.md` from first planning gate; `task-orchestration.md` from Phase 2; `progress.md` from Phase 2 Gate or earlier; `delivery-report.md` from acceptance
 4. all DAG tasks are completed, explicitly accepted as deferred by the user/gate, or dynamically replanned under execution rules
 5. task, batch, and final Executable Test Matrix checks have passed or were explicitly accepted as deferred scope
 6. every task uses one canonical Git integration state from `dev-flow-git`: `merged`, `committed`, `pr_opened`, `direct_commit_complete`, `patch_ready`, `shared_working_tree_applied`, `applied_from_shared_worktree_patch`, or `deferred_accepted`

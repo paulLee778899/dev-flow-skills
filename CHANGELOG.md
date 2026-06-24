@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [0.1.15] - 2026-06-24
+
+### Changed
+- Added YAML schemas for all five gating signals (routing_decided, git_safe, execution_settled, acceptance_ready, execution_actor_decided)
+- Standardized SKILL.md structure across all 10 skills (Boundary / Language Policy / Core Contract / References / Required Signal)
+- Added replan iteration cap (max 3) with hard-stop and user-decision protocol
+- Added sub-agent prompt contracts for all three execution modes
+- Added Git isolation mode YAML token reference table in modes-and-states.md
+- Fixed language policy phrasing to canonical "All user-facing replies in dev-flow are in Chinese."
+- Added phase gate failure signals (phase2_gate_failed, gate_paused) and Phase 1 rejection recovery path
+- Added debugging protocol escalation threshold, intermittent failure classification, and non-reproducible declaration
+- Added UI verification acceptance threshold, screenshot evidence rule, and deferral_reason field
+- Added cr_needs_defer_decision trigger condition and cr_report_ready timestamp field
+- Added dev-flow-cr post-delivery section to workflow-overview.md
 
 ## [0.1.14] - 2026-06-24
 
@@ -34,6 +49,14 @@
 - Keep core `SKILL.md` files short and move detailed governance into on-demand references.
 - Strengthen doctor checks for OpenCode install-surface allowlists, core mirror consistency, skill size, reference TOCs, repository URL drift, and lightweight opsx/OpenSpec contracts.
 - Restrict OpenCode install/update to command and core dev-flow skill assets so local `.opencode` dependency residue is not installed.
+
+## [0.1.12] - skipped
+
+## [0.1.11] - skipped
+
+## [0.1.10] - skipped
+
+- Note: versions 0.1.10–0.1.12 were not released. Version numbers were reserved but no changes were published.
 
 ## [0.1.9] - 2026-04-27
 

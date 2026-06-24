@@ -7,6 +7,10 @@
 - [Runtime Orchestration State](#runtime-orchestration-state)
 - [Run-to-Completion Loop](#run-to-completion-loop)
 
+## Terminology
+
+**Sub-wave**: A sub-wave is a subset of tasks within a batch that are dispatched together for parallel execution. A batch may be split into multiple sub-waves when task dependencies or agent-cap constraints prevent all tasks from running simultaneously.
+
 ## Agent Cap
 
 | Project size | Total tasks | Max concurrent agents per batch |
@@ -78,7 +82,7 @@ Do not stop after a task, batch, progress update, sub-agent success, fallback se
 
 Hard-stop conditions are limited to:
 
-- retry limit exhausted and a user recovery decision is required
+- retry limit exhausted and a user recovery decision is required (retry limit = 3, as defined in task-settlement-and-modes.md § Failure Handling)
 - destructive Git operation or unsafe side effect requires explicit approval through `dev-flow-git`
 - requirement-baseline or acceptance-baseline change requires Phase 1 or Phase 2 gate re-entry
 - missing external dependency cannot be mocked, stubbed, skipped, deferred, or otherwise resolved under fallback rules

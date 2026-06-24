@@ -16,6 +16,101 @@ const claudeCommandSource = path.join(packageRoot, 'commands', 'claude', 'dev-fl
 const packageJsonPath = path.join(packageRoot, 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const manifestName = 'dev-flow-manifest.json';
+const repositorySlug = 'paulLee778899/dev-flow-skills';
+const coreSkillNames = [
+  'dev-flow-acceptance',
+  'dev-flow-debugging',
+  'dev-flow-execution',
+  'dev-flow-git',
+  'dev-flow-intent',
+  'dev-flow-master',
+  'dev-flow-planning',
+  'dev-flow-review',
+  'dev-flow-ui-ux',
+];
+const opsxRequiredPhrases = ['/opsx:ff', '/opsx:apply', '/opsx:verify'];
+const staleWorkflowPatterns = [
+  { pattern: 'opsx-propose', reason: 'old opsx command name' },
+  { pattern: 'lightweight-change', reason: 'ad hoc lightweight artifact name' },
+  { pattern: 'minimal local', reason: 'local-note fallback wording' },
+  { pattern: 'one-off direct', reason: 'direct-change fallback wording' },
+];
+const staleRepositoryPatterns = [
+  { pattern: '1Zihao/dev-flow-skills', reason: 'old repository URL' },
+];
+const forbiddenOpenCodeInstallPaths = [
+  { pattern: /^node_modules(\/|$)/, reason: 'local dependency directory must not be installed' },
+  { pattern: /^package(?:-lock)?\.json$/, reason: 'local dependency manifest must not be installed' },
+  { pattern: /^bun\.lock$/, reason: 'local dependency lockfile must not be installed' },
+  { pattern: /^skills\/tk8620-firmware-workflow(\/|$)/, reason: 'OpenCode surface only mirrors core dev-flow skills' },
+];
+const maxCoreSkillLines = 80;
+const maxSkillLines = 120;
+const referenceTocLineThreshold = 100;
+const governanceSemanticChecks = [
+  {
+    skill: 'dev-flow-master',
+    label: 'master gates and lightweight signals',
+    required: [
+      'Phase 1 Gate',
+      'Phase 2 Gate',
+      'execution_actor_decided',
+      'ready-to-report',
+      'lightweight_artifact_ready',
+      'opsx_apply_complete',
+      'opsx_verify_complete',
+      'Chat memory is never sufficient',
+    ],
+  },
+  {
+    skill: 'dev-flow-planning',
+    label: 'planning gates and orchestration',
+    required: [
+      'documentation_start_approved',
+      'planning_docs_ready',
+      'task_orchestration_ready',
+      'Executable Test Matrix',
+      'Phase 1 Gate',
+      'Phase 2 Gate',
+    ],
+  },
+  {
+    skill: 'dev-flow-execution',
+    label: 'execution settlement and recovery',
+    required: [
+      'Run-to-Completion Loop',
+      'final_success',
+      'final_failed',
+      'final_blocked',
+      'Requirement Change During Execution',
+      'Never dispatch from stale memory',
+      'execution_settled',
+    ],
+  },
+  {
+    skill: 'dev-flow-git',
+    label: 'git modes and canonical states',
+    required: [
+      'git_safe',
+      'patch_ready',
+      'deferred_accepted',
+      'shared_working_tree_applied',
+      'applied_from_shared_worktree_patch',
+      'worktree mode',
+    ],
+  },
+  {
+    skill: 'dev-flow-acceptance',
+    label: 'acceptance readiness',
+    required: [
+      'ready-to-report',
+      'acceptance_ready',
+      '/opsx:verify <change>',
+      'canonical Git/patch integration state',
+      'not-ready',
+    ],
+  },
+];
 
 const args = process.argv.slice(2);
 const command = args[0] ?? 'help';
@@ -146,7 +241,7 @@ async function installOrUpdate(action) {
   const target = targetRoot();
   const dryRun = flags.has('dry-run');
   const force = flags.has('force');
-  const files = collectFiles(sourceRoot);
+  const files = collectInstallableOpenCodeFiles();
   const existingManifest = readManifest(target);
   const manifestFiles = [];
   const operations = [];
@@ -201,15 +296,7 @@ async function doctor() {
   const target = targetRoot();
   const required = [
     'command/dev-flow.md',
-    'skills/dev-flow-master/SKILL.md',
-    'skills/dev-flow-intent/SKILL.md',
-    'skills/dev-flow-debugging/SKILL.md',
-    'skills/dev-flow-ui-ux/SKILL.md',
-    'skills/dev-flow-review/SKILL.md',
-    'skills/dev-flow-planning/SKILL.md',
-    'skills/dev-flow-execution/SKILL.md',
-    'skills/dev-flow-git/SKILL.md',
-    'skills/dev-flow-acceptance/SKILL.md',
+    ...collectCoreSkillFiles().map((relativePath) => `skills/${relativePath}`),
   ];
 
   console.log('Dev Flow Skills Doctor');
@@ -222,9 +309,13 @@ async function doctor() {
     console.log(`${exists ? '✓' : '✗'} ${relativePath}`);
   }
 
+  ok = checkInstalledOpenCodeSemantics(target) && ok;
+
   const manifest = readManifest(target);
   if (manifest) {
     console.log(`✓ ${manifestName} (${manifest.version})`);
+  } else if (isSourceOpenCodeTarget(target)) {
+    console.log(`✓ ${manifestName} (source tree; generated on install)`);
   } else {
     ok = false;
     console.log(`✗ ${manifestName}`);
@@ -296,17 +387,7 @@ async function installCodexAdapter(action) {
 async function doctorCodex() {
   const skillsTarget = codexTargetRoot();
   const commandTarget = codexCommandTarget();
-  const required = [
-    'dev-flow-master/SKILL.md',
-    'dev-flow-intent/SKILL.md',
-    'dev-flow-debugging/SKILL.md',
-    'dev-flow-ui-ux/SKILL.md',
-    'dev-flow-review/SKILL.md',
-    'dev-flow-planning/SKILL.md',
-    'dev-flow-execution/SKILL.md',
-    'dev-flow-git/SKILL.md',
-    'dev-flow-acceptance/SKILL.md',
-  ];
+  const required = collectAllSkillFiles();
 
   console.log('Dev Flow Skills Codex Doctor');
   console.log(`Skills target: ${skillsTarget}`);
@@ -324,6 +405,8 @@ async function doctorCodex() {
   const commandExists = existsSync(commandTarget);
   ok = ok && commandExists;
   console.log(`${commandExists ? '✓' : '✗'} ${commandTarget}`);
+
+  ok = checkCodexSemantics(skillsTarget, commandTarget) && ok;
 
   if (!ok) {
     process.exitCode = 1;
@@ -397,7 +480,6 @@ async function installClaudeAdapter(action) {
 async function doctorClaude() {
   const skillsTargetRoot = claudeSkillsTargetRoot();
   const commandTarget = claudeCommandTarget();
-  const required = collectSkillDirectories(claudeSkillsRoot).map((source) => path.basename(source));
 
   console.log('Dev Flow Skills Claude Doctor');
   console.log(`Skills target: ${skillsTargetRoot}`);
@@ -406,15 +488,17 @@ async function doctorClaude() {
   let ok = existsSync(skillsTargetRoot);
   console.log(`${ok ? '✓' : '✗'} ${skillsTargetRoot}`);
 
-  for (const skillName of required) {
-    const exists = existsSync(path.join(skillsTargetRoot, skillName, 'SKILL.md'));
+  for (const relativePath of collectAllSkillFiles()) {
+    const exists = existsSync(path.join(skillsTargetRoot, relativePath));
     ok = ok && exists;
-    console.log(`${exists ? '✓' : '✗'} ${skillName}/SKILL.md`);
+    console.log(`${exists ? '✓' : '✗'} ${relativePath}`);
   }
 
   const commandExists = existsSync(commandTarget);
   ok = ok && commandExists;
   console.log(`${commandExists ? '✓' : '✗'} ${commandTarget}`);
+
+  ok = checkClaudeSemantics(skillsTargetRoot, commandTarget) && ok;
 
   if (!ok) {
     process.exitCode = 1;
@@ -495,11 +579,444 @@ function collectFiles(root) {
   return files.sort();
 }
 
+function collectInstallableOpenCodeFiles() {
+  return [
+    ...collectFiles(path.join(sourceRoot, 'command')),
+    ...collectFiles(path.join(sourceRoot, 'skills')),
+  ].sort();
+}
+
+function openCodeInstallRelativePath(filePath) {
+  return path.relative(sourceRoot, filePath).split(path.sep).join('/');
+}
+
 function collectSkillDirectories(root) {
   return readdirSync(root)
     .map((entry) => path.join(root, entry))
     .filter((entryPath) => statSync(entryPath).isDirectory() && existsSync(path.join(entryPath, 'SKILL.md')))
     .sort();
+}
+
+function checkInstalledOpenCodeSemantics(target) {
+  const checks = [
+    {
+      label: 'OpenCode command lightweight opsx contract',
+      filePath: path.join(target, 'command', 'dev-flow.md'),
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'OpenCode master lightweight opsx contract',
+      dirPath: path.join(target, 'skills', 'dev-flow-master'),
+      required: [
+        ...opsxRequiredPhrases,
+        'lightweight_artifact_ready',
+        'opsx_apply_complete',
+        'opsx_verify_complete',
+      ],
+      forbidden: staleWorkflowPatterns,
+    },
+  ];
+
+  let ok = true;
+  console.log('\nSemantic checks:');
+  for (const check of checks) {
+    ok = checkFileSemantics(check) && ok;
+  }
+  ok = checkGovernanceSemantics(path.join(target, 'skills'), 'OpenCode governance') && ok;
+  ok = checkSourceSemantics() && ok;
+  return ok;
+}
+
+function checkCodexSemantics(skillsTarget, commandTarget) {
+  const checks = [
+    {
+      label: 'Codex command lightweight opsx contract',
+      filePath: commandTarget,
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex master lightweight opsx contract',
+      dirPath: path.join(skillsTarget, 'dev-flow-master'),
+      required: [
+        ...opsxRequiredPhrases,
+        'lightweight_artifact_ready',
+        'opsx_apply_complete',
+        'opsx_verify_complete',
+      ],
+      forbidden: staleWorkflowPatterns,
+    },
+  ];
+
+  let ok = true;
+  console.log('\nSemantic checks:');
+  for (const check of checks) {
+    ok = checkFileSemantics(check) && ok;
+  }
+  ok = checkGovernanceSemantics(skillsTarget, 'Codex governance') && ok;
+  ok = checkSourceSemantics() && ok;
+  return ok;
+}
+
+function checkClaudeSemantics(skillsTargetRoot, commandTarget) {
+  const checks = [
+    {
+      label: 'Claude command lightweight opsx contract',
+      filePath: commandTarget,
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Claude master lightweight opsx contract',
+      dirPath: path.join(skillsTargetRoot, 'dev-flow-master'),
+      required: [
+        ...opsxRequiredPhrases,
+        'lightweight_artifact_ready',
+        'opsx_apply_complete',
+        'opsx_verify_complete',
+      ],
+      forbidden: staleWorkflowPatterns,
+    },
+  ];
+
+  let ok = true;
+  console.log('\nSemantic checks:');
+  for (const check of checks) {
+    ok = checkFileSemantics(check) && ok;
+  }
+  ok = checkGovernanceSemantics(skillsTargetRoot, 'Claude governance') && ok;
+  ok = checkSourceSemantics() && ok;
+  return ok;
+}
+
+function checkSourceSemantics() {
+  const checks = [
+    {
+      label: 'README lightweight artifact docs',
+      filePath: path.join(packageRoot, 'README.md'),
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'workflow overview lightweight path',
+      filePath: path.join(packageRoot, 'docs', 'workflow-overview.md'),
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged OpenCode command',
+      filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow.md'),
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Codex command',
+      filePath: codexCommandSource,
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Claude command',
+      filePath: claudeCommandSource,
+      required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex install repository URL',
+      filePath: path.join(packageRoot, '.codex', 'INSTALL.md'),
+      required: [repositorySlug],
+      forbidden: staleRepositoryPatterns,
+    },
+    {
+      label: 'contributing repository URL',
+      filePath: path.join(packageRoot, 'CONTRIBUTING.md'),
+      required: [repositorySlug],
+      forbidden: staleRepositoryPatterns,
+    },
+    {
+      label: 'agent install repository URL',
+      filePath: path.join(packageRoot, 'install', 'agent-install.md'),
+      required: [repositorySlug],
+      forbidden: staleRepositoryPatterns,
+    },
+    {
+      label: 'manual install current commands',
+      filePath: path.join(packageRoot, 'install', 'manual-install.md'),
+      required: ['dev-flow install', 'dev-flow install-codex', 'dev-flow install-claude'],
+      forbidden: staleRepositoryPatterns,
+    },
+    {
+      label: 'OpenCode install boundary docs',
+      filePath: path.join(packageRoot, 'install', 'opencode.md'),
+      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow'],
+      forbidden: staleRepositoryPatterns,
+    },
+    {
+      label: 'installation model boundary docs',
+      filePath: path.join(packageRoot, 'docs', 'installation-model.md'),
+      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow'],
+      forbidden: staleRepositoryPatterns,
+    },
+  ];
+
+  let ok = true;
+  for (const check of checks) {
+    ok = checkFileSemantics(check) && ok;
+  }
+  ok = checkGovernanceSemantics(codexSkillsRoot, 'source governance') && ok;
+  ok = checkOpenCodeCoreSkillMirror() && ok;
+  ok = checkOpenCodeInstallSurface() && ok;
+  ok = checkOpenCodeSkillWhitelist() && ok;
+  ok = checkSkillSizeLimits() && ok;
+  ok = checkReferenceTablesOfContents() && ok;
+  return ok;
+}
+
+function checkGovernanceSemantics(skillsRoot, labelPrefix) {
+  let ok = true;
+  for (const check of governanceSemanticChecks) {
+    ok = checkFileSemantics({
+      label: `${labelPrefix}: ${check.label}`,
+      dirPath: path.join(skillsRoot, check.skill),
+      required: check.required,
+      forbidden: staleWorkflowPatterns,
+    }) && ok;
+  }
+
+  return ok;
+}
+
+function checkOpenCodeCoreSkillMirror() {
+  let ok = true;
+  const relativePaths = collectCoreSkillFiles();
+
+  for (const relativePath of relativePaths) {
+    const codexFile = path.join(codexSkillsRoot, relativePath);
+    const openCodeFile = path.join(sourceRoot, 'skills', relativePath);
+
+    if (!existsSync(codexFile) || !existsSync(openCodeFile)) {
+      ok = false;
+      console.log(`✗ core skill mirror: ${relativePath}`);
+      continue;
+    }
+
+    const same = readFileSync(codexFile, 'utf8') === readFileSync(openCodeFile, 'utf8');
+    ok = same && ok;
+    console.log(`${same ? '✓' : '✗'} core skill mirror: ${relativePath}`);
+  }
+
+  return ok;
+}
+
+function checkOpenCodeInstallSurface() {
+  let ok = true;
+  const installable = new Set(collectInstallableOpenCodeFiles().map(openCodeInstallRelativePath));
+  const forbiddenInPlan = [...installable].filter((relativePath) => isForbiddenOpenCodeInstallPath(relativePath));
+
+  if (forbiddenInPlan.length === 0) {
+    console.log('✓ OpenCode install surface allowlist');
+  } else {
+    ok = false;
+    console.log('✗ OpenCode install surface allowlist');
+    for (const relativePath of forbiddenInPlan) {
+      console.log(`  forbidden install path: ${relativePath}`);
+    }
+  }
+
+  const ignoredSourceResidue = collectTopLevelForbiddenOpenCodeResidue();
+  const residueExcluded = ignoredSourceResidue.every((relativePath) => !installable.has(relativePath));
+  ok = residueExcluded && ok;
+  console.log(`${residueExcluded ? '✓' : '✗'} OpenCode local dependency residue excluded from install`);
+
+  return ok;
+}
+
+function checkOpenCodeSkillWhitelist() {
+  const skillsRoot = path.join(sourceRoot, 'skills');
+  if (!existsSync(skillsRoot)) {
+    console.log('✗ OpenCode skills whitelist');
+    return false;
+  }
+
+  const actual = readdirSync(skillsRoot)
+    .map((entry) => path.join(skillsRoot, entry))
+    .filter((entryPath) => statSync(entryPath).isDirectory())
+    .map((entryPath) => path.basename(entryPath))
+    .sort();
+  const allowed = [...coreSkillNames].sort();
+  const extra = actual.filter((name) => !allowed.includes(name));
+  const missing = allowed.filter((name) => !actual.includes(name));
+  const ok = extra.length === 0 && missing.length === 0;
+
+  console.log(`${ok ? '✓' : '✗'} OpenCode skills whitelist`);
+  for (const name of extra) {
+    console.log(`  extra skill: ${name}`);
+  }
+  for (const name of missing) {
+    console.log(`  missing skill: ${name}`);
+  }
+
+  return ok;
+}
+
+function checkSkillSizeLimits() {
+  let ok = true;
+  for (const skillPath of collectSkillDirectories(codexSkillsRoot)) {
+    const skillName = path.basename(skillPath);
+    const limit = coreSkillNames.includes(skillName) ? maxCoreSkillLines : maxSkillLines;
+    const skillFile = path.join(skillPath, 'SKILL.md');
+    const lineCount = countLines(readFileSync(skillFile, 'utf8'));
+    const passed = lineCount <= limit;
+    ok = passed && ok;
+    console.log(`${passed ? '✓' : '✗'} skill size: ${skillName}/SKILL.md (${lineCount}/${limit} lines)`);
+  }
+
+  return ok;
+}
+
+function checkReferenceTablesOfContents() {
+  let ok = true;
+  for (const skillPath of collectSkillDirectories(codexSkillsRoot)) {
+    const referencesPath = path.join(skillPath, 'references');
+    if (!existsSync(referencesPath)) {
+      continue;
+    }
+
+    for (const filePath of collectFiles(referencesPath).filter((file) => file.endsWith('.md'))) {
+      const content = readFileSync(filePath, 'utf8');
+      const lineCount = countLines(content);
+      if (lineCount <= referenceTocLineThreshold) {
+        continue;
+      }
+
+      const hasToc = hasTopLevelTableOfContents(content);
+      ok = hasToc && ok;
+      const relativePath = path.relative(codexSkillsRoot, filePath);
+      console.log(`${hasToc ? '✓' : '✗'} reference TOC: ${relativePath} (${lineCount} lines)`);
+    }
+  }
+
+  return ok;
+}
+
+function countLines(content) {
+  return content === '' ? 0 : content.replace(/\n$/, '').split('\n').length;
+}
+
+function hasTopLevelTableOfContents(content) {
+  const firstLines = content.split('\n').slice(0, 20).join('\n');
+  return /(^|\n)## Table of Contents\n/.test(firstLines);
+}
+
+function isForbiddenOpenCodeInstallPath(relativePath) {
+  return forbiddenOpenCodeInstallPaths.some(({ pattern }) => pattern.test(relativePath));
+}
+
+function collectTopLevelForbiddenOpenCodeResidue() {
+  if (!existsSync(sourceRoot)) {
+    return [];
+  }
+
+  return readdirSync(sourceRoot)
+    .filter((entry) => isForbiddenOpenCodeInstallPath(entry))
+    .sort();
+}
+
+function checkContentSemantics({ label, content, missingLabel, required = [], forbidden = [] }) {
+  if (content === null) {
+    console.log(`✗ ${label} (missing: ${missingLabel})`);
+    return false;
+  }
+
+  const missing = required.filter((phrase) => !content.includes(phrase));
+  const stale = forbidden.filter(({ pattern }) => content.includes(pattern));
+
+  if (missing.length === 0 && stale.length === 0) {
+    console.log(`✓ ${label}`);
+    return true;
+  }
+
+  console.log(`✗ ${label}`);
+  for (const phrase of missing) {
+    console.log(`  missing: ${phrase}`);
+  }
+  for (const item of stale) {
+    console.log(`  stale: ${item.pattern} (${item.reason})`);
+  }
+  return false;
+}
+
+function readSemanticContent(filePath) {
+  if (!filePath) {
+    return null;
+  }
+  if (!existsSync(filePath)) {
+    return null;
+  }
+  return readFileSync(filePath, 'utf8');
+}
+
+function checkFileSemantics({ label, filePath, dirPath, required = [], forbidden = [] }) {
+  const content = dirPath ? readSkillSemanticContent(dirPath) : readSemanticContent(filePath);
+  return checkContentSemantics({
+    label,
+    content,
+    missingLabel: dirPath ?? filePath,
+    required,
+    forbidden,
+  });
+}
+
+function readSkillSemanticContent(dirPath) {
+  if (!existsSync(dirPath)) {
+    return null;
+  }
+
+  const files = [];
+  const skillFile = path.join(dirPath, 'SKILL.md');
+  if (existsSync(skillFile)) {
+    files.push(skillFile);
+  }
+
+  const referencesPath = path.join(dirPath, 'references');
+  if (existsSync(referencesPath)) {
+    files.push(...collectFiles(referencesPath));
+  }
+
+  if (files.length === 0) {
+    return null;
+  }
+
+  return files.map((file) => readFileSync(file, 'utf8')).join('\n');
+}
+
+function collectCoreSkillFiles() {
+  const files = [];
+  for (const skillName of coreSkillNames) {
+    const skillPath = path.join(codexSkillsRoot, skillName);
+    if (!existsSync(skillPath)) {
+      files.push(`${skillName}/SKILL.md`);
+      continue;
+    }
+
+    for (const file of collectFiles(skillPath)) {
+      files.push(path.relative(codexSkillsRoot, file));
+    }
+  }
+
+  return files.sort();
+}
+
+function collectAllSkillFiles() {
+  const files = [];
+  for (const skillPath of collectSkillDirectories(codexSkillsRoot)) {
+    for (const file of collectFiles(skillPath)) {
+      files.push(path.relative(codexSkillsRoot, file));
+    }
+  }
+
+  return files.sort();
 }
 
 function readManifest(target) {
@@ -509,6 +1026,10 @@ function readManifest(target) {
   }
 
   return JSON.parse(readFileSync(manifestPath, 'utf8'));
+}
+
+function isSourceOpenCodeTarget(target) {
+  return path.resolve(target) === path.resolve(sourceRoot);
 }
 
 function sha256(content) {

@@ -46,6 +46,12 @@ dev-flow doctor --global
     dev-flow-acceptance/
 ```
 
+Each core skill keeps its short routing contract in `SKILL.md` and detailed instructions in `references/` for on-demand loading. The planning templates are installed under `.opencode/skills/dev-flow-master/templates/` and checked by `dev-flow doctor`.
+
+`.opencode/skills` is the OpenCode package surface for the core `dev-flow-*` workflow. It is not a full mirror of the repository's top-level `skills/` directory; platform-specific or project-specific skills, such as `tk8620-firmware-workflow`, may exist only under `skills/` for Codex/Claude adapters.
+
+`dev-flow doctor` also checks core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+
 ## Command
 
 ```text

@@ -1,5 +1,14 @@
 # Linux TK8620 Firmware Workflow
 
+## Table of Contents
+
+- [Select Architecture](#select-architecture)
+- [Toolchain](#toolchain)
+- [Environment](#environment)
+- [Build](#build)
+- [Serial And Burn](#serial-and-burn)
+- [Common Failures](#common-failures)
+
 Use this reference when the current host is Linux.
 
 ## Select Architecture

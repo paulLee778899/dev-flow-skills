@@ -1,5 +1,13 @@
 # Windows TK8620 Firmware Workflow
 
+## Table of Contents
+
+- [Toolchain](#toolchain)
+- [Build](#build)
+- [Ports](#ports)
+- [Burn And Serial](#burn-and-serial)
+- [Common Failures](#common-failures)
+
 Use this reference when the current host is Windows.
 
 ## Toolchain

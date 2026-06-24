@@ -9,6 +9,8 @@ Codex discovers skills and commands through native discovery directories:
 
 This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and a root `commands/dev-flow.md` file for the `/dev-flow` command.
 
+The planning templates are bundled under `skills/dev-flow-master/templates/` and checked by `dev-flow doctor-codex`.
+
 Codex plugin commands are discovered from a plugin-root `commands/` directory; they are not declared with a `commands` field in `.codex-plugin/plugin.json`. This matches the official Codex plugin examples and the Superpowers plugin structure.
 
 ## Codex App
@@ -34,7 +36,7 @@ Then restart Codex so it discovers the skills and `/dev-flow` command.
 Alternatively, clone the repository and symlink its skills and command into Codex's discovery directories:
 
 ```bash
-git clone https://github.com/1Zihao/dev-flow-skills.git ~/.codex/dev-flow-skills
+git clone https://github.com/paulLee778899/dev-flow-skills.git ~/.codex/dev-flow-skills
 mkdir -p ~/.agents/skills
 mkdir -p ~/.agents/commands
 ln -s ~/.codex/dev-flow-skills/skills ~/.agents/skills/dev-flow-skills

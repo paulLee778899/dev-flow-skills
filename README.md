@@ -131,15 +131,16 @@ Agent:
 2. Loads `dev-flow-intent` and classifies the task type.
 3. Routes debugging, UI/UX, and review requests to focused protocols when appropriate.
 4. Classifies feature/change work as lightweight, medium, or heavyweight.
-5. Enters planning mode when governed planning is required.
-6. Asks required clarification questions before writing documents.
-7. Writes requirement/design/test documents after user confirmation.
-8. Builds task orchestration and an executable test matrix.
-9. Selects a Git strategy.
-10. Shows the default multi-agent/subagent execution mode at Phase 2 Gate, after orchestration and Git checks.
-11. Executes continuously until all planned tasks settle.
-12. Replans if requirements change or execution invalidates the plan.
-13. Runs final acceptance and writes delivery evidence.
+5. For lightweight work, uses opsx/OpenSpec artifacts such as `/opsx:ff`, `/opsx:apply`, and `/opsx:verify`.
+6. Enters planning mode when governed planning is required.
+7. Asks required clarification questions before writing documents.
+8. Writes requirement/design/test documents after user confirmation.
+9. Builds task orchestration, parallel-safety rules, and an executable test matrix.
+10. Selects a Git strategy.
+11. Shows the default multi-agent/subagent execution mode at Phase 2 Gate, after orchestration, overlap-risk, and Git checks.
+12. Executes continuously until all planned tasks settle.
+13. Replans if requirements change or execution invalidates the plan.
+14. Runs final acceptance and writes delivery evidence.
 ```
 
 ## Generated artifacts
@@ -151,11 +152,31 @@ For governed work, the flow is designed to produce durable project artifacts suc
 - `high-level-design.md`
 - `detailed-design.md`
 - `test-plan.md`
+- `dev-flow-state.md`
 - `task-orchestration.md`
 - runtime orchestration state
+- `progress.md`
 - `delivery-report.md`
 
+For lightweight work, the flow uses the active project's OpenSpec schema instead of the four dev-flow planning docs. Expected evidence includes:
+
+- `openspec/changes/<change>/`
+- generated proposal/tasks/spec/design artifacts required by the schema
+- `/opsx:apply` implementation/task status
+- `/opsx:verify` output
+- Git/patch state and unresolved risk notes
+
 Exact paths are project-specific and should be decided during planning.
+
+## Skill layout
+
+Core skills use progressive disclosure:
+
+- `SKILL.md` keeps triggers, ownership, hard rules, and the shortest safe route.
+- `references/` holds detailed contracts, signal tables, task schemas, recovery rules, and format examples that are loaded only when needed.
+- `templates/` under `dev-flow-master` holds the governed planning document templates.
+
+This keeps frequently loaded skills small while preserving the full governance contract.
 
 ## Common commands
 
@@ -168,12 +189,18 @@ dev-flow version
 
 Platform-specific commands are documented in the platform guides. Codex uses `install-codex` / `doctor-codex`; Claude Code uses `install-claude` / `doctor-claude`. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
 
+Doctor commands check required files, planning templates, core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+
 ## Safety model
 
 - User confirmation is required before starting formal planning documents when clarification is incomplete.
+- Gate approvals and required signals are recorded in `dev-flow-state.md`; chat memory is not enough evidence for governed completion.
+- Lightweight work uses opsx/OpenSpec artifacts instead of the four dev-flow planning docs; if opsx/OpenSpec is unavailable, the workflow stops for user direction instead of silently doing chat-only or ad hoc planning.
 - Phase 2 Gate shows the default multi-agent/subagent execution mode before implementation starts; users may override it to main-agent serial execution.
 - Requirement changes during execution must return to planning before code changes continue.
 - Shared working-tree writes must be serialized.
+- Tasks with high file or symbol overlap must be serialized even when worktrees are available.
 - Parallel no-worktree mode should use patch generation plus main-agent serial apply.
+- Final acceptance requires review/self-review evidence and canonical Git integration states for every task.
 - Local modifications are protected by manifest checksums during update.
 - Final success requires verification evidence, not only agent self-reporting.

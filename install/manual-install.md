@@ -21,10 +21,27 @@ This installs files into:
 
 The installed skills include the entry controller (`dev-flow-master`), intent routing (`dev-flow-intent`), focused routes for debugging/UI/UX/review, and the governed planning/execution/Git/acceptance skills.
 
+Each core skill keeps its short routing contract in `SKILL.md` and detailed instructions in `references/` for on-demand loading. The governed planning templates live under the installed `dev-flow-master/templates/` directory and are checked by the doctor command.
+
+The OpenCode install surface intentionally includes the core `dev-flow-*` skills only. Extra skills in the repository's top-level `skills/` directory are for platform adapters or project-specific use and are not automatically part of `.opencode/skills`.
+
+Doctor commands also check core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+
 Verify:
 
 ```bash
 dev-flow doctor --global
+```
+
+## Platform adapters
+
+OpenCode uses `dev-flow install` and `dev-flow doctor`. Codex and Claude Code use native discovery directories and require their own adapter commands:
+
+```bash
+dev-flow install-codex
+dev-flow doctor-codex
+dev-flow install-claude
+dev-flow doctor-claude
 ```
 
 ## Project-local install

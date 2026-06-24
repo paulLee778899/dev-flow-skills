@@ -39,6 +39,8 @@ dev-flow doctor-claude
     tk8620-firmware-workflow/
 ```
 
+The planning templates are installed under `~/.claude/skills/dev-flow-master/templates/` and checked by `dev-flow doctor-claude`.
+
 ## Command
 
 ```text

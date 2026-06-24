@@ -1,5 +1,15 @@
 # macOS TK8620 Firmware Workflow
 
+## Table of Contents
+
+- [Strategy](#strategy)
+- [Docker Check](#docker-check)
+- [Toolchain Acquisition](#toolchain-acquisition)
+- [Container Setup](#container-setup)
+- [Build](#build)
+- [Serial And Burn](#serial-and-burn)
+- [Common Failures](#common-failures)
+
 Use this reference when the current host is macOS.
 
 ## Strategy

@@ -5,7 +5,7 @@ Thanks for improving Dev Flow Skills.
 ## Development setup
 
 ```bash
-git clone https://github.com/1Zihao/dev-flow-skills.git
+git clone https://github.com/paulLee778899/dev-flow-skills.git
 cd dev-flow-skills
 npm install -g .
 dev-flow doctor --target .

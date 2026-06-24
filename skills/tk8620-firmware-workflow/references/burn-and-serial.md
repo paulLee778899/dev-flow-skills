@@ -1,5 +1,16 @@
 # TK8620 Burn And Serial
 
+## Table of Contents
+
+- [Dependencies](#dependencies)
+- [Find Build Directory](#find-build-directory)
+- [Artifact Trust Gate](#artifact-trust-gate)
+- [Port Identification](#port-identification)
+- [Hardware Mode](#hardware-mode)
+- [Burn](#burn)
+- [Serial Console](#serial-console)
+- [Safety Notes](#safety-notes)
+
 Use this reference before flashing hardware or opening a serial console.
 
 ## Dependencies
@@ -169,7 +180,7 @@ $AppHex = "path\to\app.hex"
 py -3 -m py_tool.burn_8620_cli $TargetPort --work $AppHex --ctrl-port $ControlPort
 ```
 
-Full image burn, only after the bootloader decision rules in `SKILL.md` say bootloader flashing is required:
+Full image burn, only after the bootloader decision rules in `references/core-workflow.md` say bootloader flashing is required:
 
 ```bash
 TARGET_PORT=/dev/tty.usbserial-target

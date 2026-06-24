@@ -22,11 +22,15 @@ Focused routes:
 
 `dev-flow-planning` prevents premature design by requiring clarification before formal documents are written. It owns planning docs, task orchestration, task DAGs, and the executable test matrix.
 
-## Phase 2: Git safety
+## Lightweight path
 
-`dev-flow-git` chooses the correct isolation and side-effect model: worktree, branch, shared working tree, patch-ready mode, PR mode, rollback, or conflict handling.
+Lightweight work skips the four dev-flow Chinese planning documents, but it does not skip persisted artifacts. It must use the active project's opsx/OpenSpec workflow, normally `/opsx:ff <change>` for artifacts, `/opsx:apply <change>` for implementation, and `/opsx:verify <change>` for evidence. If opsx/OpenSpec is unavailable or uninitialized, the dev-flow path stops for user direction: initialize/install opsx/OpenSpec, or reclassify into governed planning. Direct changes without artifacts require the user to explicitly exit dev-flow.
 
-At Phase 2 Gate, the master presents orchestration results, Git checks, and the default execution mode. The default is multi-agent/subagent execution governed by task batches, agent cap, Git isolation, and writer limits; user approval accepts that mode unless they override it to main-agent serial execution.
+## Phase 2: Task orchestration and Git safety
+
+`dev-flow-planning` turns approved docs into task orchestration, DAG batches, parallel-safety rules, and an executable test matrix. `dev-flow-git` chooses the correct isolation and side-effect model: worktree, branch, shared working tree, patch-ready mode, PR mode, rollback, or conflict handling.
+
+At Phase 2 Gate, the master presents orchestration results, overlap risks, Git checks, and the default execution mode. The default is multi-agent/subagent execution governed by task batches, agent cap, Git isolation, overlap risk, and writer limits; user approval accepts that mode unless they override it to main-agent serial execution.
 
 ## Phase 3: Execution
 
@@ -34,7 +38,7 @@ At Phase 2 Gate, the master presents orchestration results, Git checks, and the 
 
 ## Phase 4: Acceptance
 
-`dev-flow-acceptance` collects verification evidence and decides whether the change is ready. It produces the delivery report.
+`dev-flow-acceptance` collects verification evidence and decides whether the change is ready. It verifies `dev-flow-state.md`, task progress, review/self-review evidence, Git integration states, and applicable quality reports before producing the delivery report.
 
 ## Requirement changes during execution
 

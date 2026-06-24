@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.1.13] - 2026-06-24
+
 ### Added
 
 - Add `dev-flow-intent` as the master-loaded intent classifier for debugging, feature, change-adjustment, review, UI/UX, status-recovery, and question routes.
@@ -9,6 +11,7 @@
 - Add Claude Code installation support with `install-claude`, `update-claude`, `doctor-claude`, and a Claude `/dev-flow` command.
 - Add trusted npm publishing workflow metadata for the `paulLee778899/dev-flow-skills` repository.
 - Add routing eval prompts in `evals/evals.json`.
+- Add progressive `references/` files for core dev-flow skills and the TK8620 firmware workflow.
 
 ### Changed
 
@@ -16,6 +19,9 @@
 - Show the default multi-agent/subagent execution mode at Phase 2 Gate after orchestration and Git checks, with main-agent serial fallback/override.
 - Clarify the skill reuse policy: call Superpowers workflows directly when available, and absorb optional marketplace/local skill patterns without hard dependencies.
 - Update installer doctor checks, command docs, plugin metadata, and public docs for the new route skills.
+- Keep core `SKILL.md` files short and move detailed governance into on-demand references.
+- Strengthen doctor checks for OpenCode install-surface allowlists, core mirror consistency, skill size, reference TOCs, repository URL drift, and lightweight opsx/OpenSpec contracts.
+- Restrict OpenCode install/update to command and core dev-flow skill assets so local `.opencode` dependency residue is not installed.
 
 ## [0.1.9] - 2026-04-27
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dev Flow Loop Triage"
+  short_description: "Read-only loop triage inbox"
+  default_prompt: "Use $dev-flow-loop-triage to scan for candidate work without changing files."

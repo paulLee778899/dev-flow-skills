@@ -31,6 +31,14 @@ Tie-breakers:
 | `ui-ux` | 页面, 布局, 视觉, 交互, 响应式, 可访问性, 文案, 截图 | `dev-flow-ui-ux` |
 | `status-recovery` | 进度, 到哪了, 继续上次, 恢复, 还剩多少 | `dev-flow-master` context recovery |
 | `question` | 怎么理解, 有什么建议, 比较一下, 解释 | direct answer or read-only analysis |
+| `loop_engineering` | outer loop design, recurring triage, loop control, loop envelope, scheduling a scan/monitor, automation safety review, loop handoff governance | direct invocation of `/dev-flow-loop`, `/dev-flow-triage`, `/dev-flow-loop-envelope`, or `/dev-flow-scheduler` — bypasses dev-flow phases; do not route to dev-flow-execution or dev-flow-planning |
+
+```yaml
+loop_engineering:
+  description: User asks for outer loop design, recurring triage, automation safety review, loop control, scheduling a scan/monitor, or defining a loop envelope
+  recommended_route: direct invocation of /dev-flow-loop, /dev-flow-triage, /dev-flow-loop-envelope, or /dev-flow-scheduler
+  note: Loop engineering requests bypass dev-flow phases; do not route to dev-flow-execution or dev-flow-planning
+```
 
 ## Risk Flags
 

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.1.16] - 2026-06-25
+
+### Added
+- Add read-only Loop Engineering commands `/dev-flow-loop` and `/dev-flow-triage`.
+- Add `dev-flow-loop`, `dev-flow-loop-envelope`, and `dev-flow-loop-triage` skills for outer-loop control, budget/permission envelopes, and candidate inbox triage.
+- Add `/dev-flow-scheduler` plus `dev-flow-scheduler` for approved cron/heartbeat automation management.
+- Extend doctor checks to validate Loop Engineering command contracts, read-only boundaries, approved scheduler boundaries, handoff wording, and OpenCode core skill mirrors.
+
+### Changed
+- Clarify that loop and triage may ask a concrete handoff question and enter the equivalent owner flow after explicit candidate confirmation, without requiring the user to type another slash command.
+- Keep automation creation/update/pause/resume/delete outside loop and triage; route it through `/dev-flow-scheduler`.
+
 ## [0.1.15] - 2026-06-24
 
 ### Changed

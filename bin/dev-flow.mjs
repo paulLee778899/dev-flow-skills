@@ -24,14 +24,52 @@ const coreSkillNames = [
   'dev-flow-execution',
   'dev-flow-git',
   'dev-flow-intent',
+  'dev-flow-loop',
+  'dev-flow-loop-envelope',
+  'dev-flow-loop-triage',
   'dev-flow-master',
   'dev-flow-planning',
   'dev-flow-review',
+  'dev-flow-scheduler',
   'dev-flow-ui-ux',
 ];
 const opsxRequiredPhrases = ['/opsx:ff', '/opsx:apply', '/opsx:verify'];
-const commandFileNames = ['dev-flow.md', 'dev-flow-cr.md'];
+const commandFileNames = ['dev-flow.md', 'dev-flow-cr.md', 'dev-flow-loop.md', 'dev-flow-triage.md', 'dev-flow-scheduler.md'];
 const crIndependentPhrase = 'Do not run as an automatic `/dev-flow` stage';
+const releaseMetadataKeywords = ['loop', 'triage', 'scheduler', 'automation'];
+const releaseMetadataDescriptionPhrases = ['Loop Engineering triage', 'scheduler automation'];
+const loopReadOnlyPhrases = [
+  'Default read-only',
+  'Do not start `/dev-flow`',
+  'Do not start `/dev-flow-cr`',
+  'loop_control_ready',
+  'trace_or_eval_evidence',
+  'maker-checker',
+  'trigger type',
+  'without requiring another slash command',
+  'Do not start commits, pushes, PRs, merges, worktrees, schedulers, or external mutations automatically',
+  'create, update, pause, resume, or delete schedulers/automations',
+];
+const triageReadOnlyPhrases = [
+  'Default read-only',
+  'Candidate Inbox',
+  'loop_triage_ready',
+  'Do not start `/dev-flow`',
+  'Do not start `/dev-flow-cr`',
+  'trace_summary',
+  'without requiring another slash command',
+  'Do not modify files, Git history, trackers, CI, external services, or dev-flow delivery artifacts',
+];
+const schedulerRequiredPhrases = [
+  'dev-flow-scheduler',
+  'scheduler_ready',
+  'explicit user approval',
+  'Do not create, update, pause, resume, or delete automations without explicit user approval',
+  'Do not run `/dev-flow` automatically',
+  'Do not run `/dev-flow-cr` automatically',
+  'Do not modify files, commit, push, open PRs, merge, create worktrees, mutate trackers, call production systems, or perform full code review',
+  'Candidate Inbox',
+];
 const staleWorkflowPatterns = [
   { pattern: 'opsx-propose', reason: 'old opsx command name' },
   { pattern: 'lightweight-change', reason: 'ad hoc lightweight artifact name' },
@@ -111,6 +149,82 @@ const governanceSemanticChecks = [
       'shared_working_tree_applied',
       'applied_from_shared_worktree_patch',
       'worktree mode',
+    ],
+  },
+  {
+    skill: 'dev-flow-loop',
+    label: 'loop control plane',
+    required: [
+      'Loop Engineering',
+      'Default read-only',
+      'dev-flow-loop-envelope',
+      'dev-flow-loop-triage',
+      'loop_control_ready',
+      'Loop Primitives',
+      'goal',
+      'trigger',
+      'trace',
+      'eval',
+      'Do not start `/dev-flow`',
+      'Do not start `/dev-flow-cr`',
+      'Keep loop state separate from `dev-flow-state.md`',
+      'trace_or_eval_evidence',
+      'maker-checker',
+      'handoff_question',
+      'dev-flow-scheduler',
+    ],
+  },
+  {
+    skill: 'dev-flow-loop-envelope',
+    label: 'loop envelope safety',
+    required: [
+      'loop_envelope_ready',
+      'budget',
+      'stop_conditions',
+      'repo_writer_lock',
+      'forbidden_side_effects',
+      'schedule_kind',
+      'cron_expression',
+      'timezone',
+      'missed_run_policy',
+      'max_overlap',
+      'jitter',
+      'cadence',
+      'trace_requirements',
+      'eval_checkpoint',
+      'Creating, updating, pausing, resuming, or deleting an automation through `dev-flow-scheduler`',
+      'dev-flow-scheduler',
+    ],
+  },
+  {
+    skill: 'dev-flow-loop-triage',
+    label: 'loop read-only triage',
+    required: [
+      'loop_triage_ready',
+      'Candidate Inbox',
+      'Default read-only',
+      'Do not start `/dev-flow`',
+      'Do not write `dev-flow-state.md`',
+      'recommended_next_route',
+      'trace_summary',
+      'sources_unavailable',
+      'handoff_question',
+    ],
+  },
+  {
+    skill: 'dev-flow-scheduler',
+    label: 'scheduler automation management',
+    required: [
+      'scheduler_ready',
+      'explicit user approval',
+      'cron',
+      'heartbeat',
+      'Candidate Inbox',
+      'Do not scan candidates',
+      'Do not run `/dev-flow`',
+      'Do not run `/dev-flow-cr`',
+      'forbidden_side_effects',
+      'automation_id',
     ],
   },
   {
@@ -402,7 +516,7 @@ async function installCodexAdapter(action) {
     }
     await symlink(item.source, item.target, item.type);
   }
-  console.log('\nCodex skills and /dev-flow commands installed. Restart Codex to discover them.');
+  console.log('\nCodex skills and slash commands (/dev-flow, /dev-flow-cr, /dev-flow-loop, /dev-flow-triage, /dev-flow-scheduler) installed. Restart Codex to discover them.');
 }
 
 async function doctorCodex() {
@@ -503,7 +617,7 @@ async function installClaudeAdapter(action) {
     }
     await symlink(item.source, item.target, item.type);
   }
-  console.log('\nClaude skills and /dev-flow commands installed. Restart Claude Code to discover them.');
+  console.log('\nClaude skills and slash commands (/dev-flow, /dev-flow-cr, /dev-flow-loop, /dev-flow-triage, /dev-flow-scheduler) installed. Restart Claude Code to discover them.');
 }
 
 async function doctorClaude() {
@@ -644,6 +758,24 @@ function checkInstalledOpenCodeSemantics(target) {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'OpenCode loop command contract',
+      filePath: path.join(target, 'command', 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'OpenCode triage command contract',
+      filePath: path.join(target, 'command', 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'OpenCode scheduler command contract',
+      filePath: path.join(target, 'command', 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'OpenCode master lightweight opsx contract',
       dirPath: path.join(target, 'skills', 'dev-flow-master'),
       required: [
@@ -678,6 +810,24 @@ function checkCodexSemantics(skillsTarget, commandsTarget) {
       label: 'Codex CR command contract',
       filePath: path.join(commandsTarget, 'dev-flow-cr.md'),
       required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex loop command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex triage command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Codex scheduler command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
       forbidden: staleWorkflowPatterns,
     },
     {
@@ -718,6 +868,24 @@ function checkClaudeSemantics(skillsTargetRoot, commandsTarget) {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'Claude loop command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Claude triage command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'Claude scheduler command contract',
+      filePath: path.join(commandsTarget, 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'Claude master lightweight opsx contract',
       dirPath: path.join(skillsTargetRoot, 'dev-flow-master'),
       required: [
@@ -749,9 +917,21 @@ function checkSourceSemantics() {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'README loop scheduler docs',
+      filePath: path.join(packageRoot, 'README.md'),
+      required: ['/dev-flow-scheduler', 'dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command'],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'workflow overview lightweight path',
       filePath: path.join(packageRoot, 'docs', 'workflow-overview.md'),
       required: opsxRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'workflow overview loop scheduler path',
+      filePath: path.join(packageRoot, 'docs', 'workflow-overview.md'),
+      required: ['/dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command'],
       forbidden: staleWorkflowPatterns,
     },
     {
@@ -767,6 +947,24 @@ function checkSourceSemantics() {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'packaged OpenCode loop command',
+      filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged OpenCode triage command',
+      filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged OpenCode scheduler command',
+      filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'packaged Codex command',
       filePath: path.join(codexCommandsSourceRoot, 'dev-flow.md'),
       required: opsxRequiredPhrases,
@@ -779,6 +977,24 @@ function checkSourceSemantics() {
       forbidden: staleWorkflowPatterns,
     },
     {
+      label: 'packaged Codex loop command',
+      filePath: path.join(codexCommandsSourceRoot, 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Codex triage command',
+      filePath: path.join(codexCommandsSourceRoot, 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Codex scheduler command',
+      filePath: path.join(codexCommandsSourceRoot, 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
+      forbidden: staleWorkflowPatterns,
+    },
+    {
       label: 'packaged Claude command',
       filePath: path.join(claudeCommandsSourceRoot, 'dev-flow.md'),
       required: opsxRequiredPhrases,
@@ -788,6 +1004,24 @@ function checkSourceSemantics() {
       label: 'packaged Claude CR command',
       filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-cr.md'),
       required: ['dev-flow-cr', 'cr_report_ready', crIndependentPhrase],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Claude loop command',
+      filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-loop.md'),
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Claude triage command',
+      filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-triage.md'),
+      required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
+      forbidden: staleWorkflowPatterns,
+    },
+    {
+      label: 'packaged Claude scheduler command',
+      filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-scheduler.md'),
+      required: schedulerRequiredPhrases,
       forbidden: staleWorkflowPatterns,
     },
     {
@@ -811,19 +1045,19 @@ function checkSourceSemantics() {
     {
       label: 'manual install current commands',
       filePath: path.join(packageRoot, 'install', 'manual-install.md'),
-      required: ['dev-flow install', 'dev-flow install-codex', 'dev-flow install-claude'],
+      required: ['dev-flow install', 'dev-flow install-codex', 'dev-flow install-claude', 'dev-flow-scheduler.md'],
       forbidden: staleRepositoryPatterns,
     },
     {
       label: 'OpenCode install boundary docs',
       filePath: path.join(packageRoot, 'install', 'opencode.md'),
-      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow'],
+      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', 'dev-flow-scheduler.md'],
       forbidden: staleRepositoryPatterns,
     },
     {
       label: 'installation model boundary docs',
       filePath: path.join(packageRoot, 'docs', 'installation-model.md'),
-      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow'],
+      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', '/dev-flow-scheduler'],
       forbidden: staleRepositoryPatterns,
     },
   ];
@@ -836,8 +1070,51 @@ function checkSourceSemantics() {
   ok = checkOpenCodeCoreSkillMirror() && ok;
   ok = checkOpenCodeInstallSurface() && ok;
   ok = checkOpenCodeSkillWhitelist() && ok;
+  ok = checkReleaseMetadata() && ok;
   ok = checkSkillSizeLimits() && ok;
   ok = checkReferenceTablesOfContents() && ok;
+  return ok;
+}
+
+function checkReleaseMetadata() {
+  let ok = true;
+  const pluginJsonPath = path.join(packageRoot, '.codex-plugin', 'plugin.json');
+  const changelogPath = path.join(packageRoot, 'CHANGELOG.md');
+  const pluginJson = JSON.parse(readFileSync(pluginJsonPath, 'utf8'));
+  const changelog = readFileSync(changelogPath, 'utf8');
+
+  const versionsMatch = packageJson.version === pluginJson.version;
+  ok = versionsMatch && ok;
+  console.log(`${versionsMatch ? '✓' : '✗'} release metadata version parity`);
+  if (!versionsMatch) {
+    console.log(`  package.json: ${packageJson.version}`);
+    console.log(`  .codex-plugin/plugin.json: ${pluginJson.version}`);
+  }
+
+  const changelogHasVersion = changelog.includes(`## [${packageJson.version}]`);
+  ok = changelogHasVersion && ok;
+  console.log(`${changelogHasVersion ? '✓' : '✗'} changelog current version section`);
+
+  ok = checkContentSemantics({
+    label: 'package release metadata',
+    content: JSON.stringify({
+      description: packageJson.description,
+      keywords: packageJson.keywords,
+    }),
+    missingLabel: packageJsonPath,
+    required: [...releaseMetadataKeywords, ...releaseMetadataDescriptionPhrases],
+  }) && ok;
+
+  ok = checkContentSemantics({
+    label: 'plugin release metadata',
+    content: JSON.stringify({
+      description: pluginJson.description,
+      keywords: pluginJson.keywords,
+    }),
+    missingLabel: pluginJsonPath,
+    required: [...releaseMetadataKeywords, ...releaseMetadataDescriptionPhrases],
+  }) && ok;
+
   return ok;
 }
 
@@ -1139,6 +1416,13 @@ Usage:
   dev-flow doctor-claude [--target PATH] [--commands-target PATH]
   dev-flow uninstall [--global|--target PATH] [--dry-run]
   dev-flow version
+
+Installed slash commands:
+  /dev-flow            Governed development workflow
+  /dev-flow-cr         Independent post-acceptance CR
+  /dev-flow-loop       Loop Engineering control review
+  /dev-flow-triage     Read-only candidate inbox
+  /dev-flow-scheduler  Approved automation management
 `);
 }
 

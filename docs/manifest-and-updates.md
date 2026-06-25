@@ -23,6 +23,18 @@ Example:
     {
       "path": "command/dev-flow-cr.md",
       "sha256": "..."
+    },
+    {
+      "path": "command/dev-flow-loop.md",
+      "sha256": "..."
+    },
+    {
+      "path": "command/dev-flow-triage.md",
+      "sha256": "..."
+    },
+    {
+      "path": "command/dev-flow-scheduler.md",
+      "sha256": "..."
     }
   ]
 }

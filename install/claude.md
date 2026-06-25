@@ -1,6 +1,6 @@
 # Claude Code Integration
 
-Dev Flow Skills installs Claude Code skills plus `/dev-flow` and `/dev-flow-cr` slash commands.
+Dev Flow Skills installs Claude Code skills plus `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` slash commands.
 
 ## Install
 
@@ -27,8 +27,15 @@ dev-flow doctor-claude
   commands/
     dev-flow.md
     dev-flow-cr.md
+    dev-flow-loop.md
+    dev-flow-triage.md
+    dev-flow-scheduler.md
   skills/
     dev-flow-cr/
+    dev-flow-loop/
+    dev-flow-loop-envelope/
+    dev-flow-loop-triage/
+    dev-flow-scheduler/
     dev-flow-master/
     dev-flow-intent/
     dev-flow-debugging/
@@ -48,9 +55,12 @@ The planning templates are installed under `~/.claude/skills/dev-flow-master/tem
 ```text
 ~/.claude/commands/dev-flow.md
 ~/.claude/commands/dev-flow-cr.md
+~/.claude/commands/dev-flow-loop.md
+~/.claude/commands/dev-flow-triage.md
+~/.claude/commands/dev-flow-scheduler.md
 ```
 
-`/dev-flow` is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. `/dev-flow-cr` is independent and runs post-acceptance CR through `dev-flow-cr`.
+`/dev-flow` is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. `/dev-flow-cr` is independent and runs post-acceptance CR through `dev-flow-cr`. `/dev-flow-loop` and `/dev-flow-triage` are read-only Loop Engineering commands; they enter implementation or CR only after explicit confirmation of a specific candidate. `/dev-flow-scheduler` manages approved cron/heartbeat automations and does not scan candidates or execute development work.
 
 ## Skills
 
@@ -61,6 +71,10 @@ The CLI links each bundled skill directory into `~/.claude/skills/` by default:
 ```text
 ~/.claude/skills/dev-flow-master/
 ~/.claude/skills/dev-flow-cr/
+~/.claude/skills/dev-flow-loop/
+~/.claude/skills/dev-flow-loop-envelope/
+~/.claude/skills/dev-flow-loop-triage/
+~/.claude/skills/dev-flow-scheduler/
 ~/.claude/skills/dev-flow-intent/
 ~/.claude/skills/dev-flow-debugging/
 ~/.claude/skills/dev-flow-ui-ux/
@@ -98,8 +112,15 @@ Restart Claude Code after updating so it discovers changed skills and commands.
 ```bash
 rm ~/.claude/commands/dev-flow.md
 rm ~/.claude/commands/dev-flow-cr.md
+rm ~/.claude/commands/dev-flow-loop.md
+rm ~/.claude/commands/dev-flow-triage.md
+rm ~/.claude/commands/dev-flow-scheduler.md
 rm ~/.claude/skills/dev-flow-master
 rm ~/.claude/skills/dev-flow-cr
+rm ~/.claude/skills/dev-flow-loop
+rm ~/.claude/skills/dev-flow-loop-envelope
+rm ~/.claude/skills/dev-flow-loop-triage
+rm ~/.claude/skills/dev-flow-scheduler
 rm ~/.claude/skills/dev-flow-intent
 rm ~/.claude/skills/dev-flow-debugging
 rm ~/.claude/skills/dev-flow-ui-ux

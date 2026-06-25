@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dev Flow Loop Envelope"
+  short_description: "Loop budget and safety envelope"
+  default_prompt: "Use $dev-flow-loop-envelope to define budget, permissions, and stop conditions."

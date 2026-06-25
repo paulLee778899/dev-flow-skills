@@ -7,7 +7,7 @@ Codex discovers skills and commands through native discovery directories:
 ~/.agents/commands/
 ```
 
-This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and root command files for `/dev-flow` and `/dev-flow-cr`.
+This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and root command files for `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler`.
 
 The planning templates are bundled under `skills/dev-flow-master/templates/` and checked by `dev-flow doctor-codex`.
 
@@ -29,7 +29,7 @@ dev-flow install-codex
 dev-flow doctor-codex
 ```
 
-Then restart Codex so it discovers the skills and `/dev-flow` plus `/dev-flow-cr` commands.
+Then restart Codex so it discovers the skills and `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` commands.
 
 ## Manual Git install
 
@@ -42,9 +42,12 @@ mkdir -p ~/.agents/commands
 ln -s ~/.codex/dev-flow-skills/skills ~/.agents/skills/dev-flow-skills
 ln -s ~/.codex/dev-flow-skills/commands/dev-flow.md ~/.agents/commands/dev-flow.md
 ln -s ~/.codex/dev-flow-skills/commands/dev-flow-cr.md ~/.agents/commands/dev-flow-cr.md
+ln -s ~/.codex/dev-flow-skills/commands/dev-flow-loop.md ~/.agents/commands/dev-flow-loop.md
+ln -s ~/.codex/dev-flow-skills/commands/dev-flow-triage.md ~/.agents/commands/dev-flow-triage.md
+ln -s ~/.codex/dev-flow-skills/commands/dev-flow-scheduler.md ~/.agents/commands/dev-flow-scheduler.md
 ```
 
-Then restart Codex so it discovers the skills and `/dev-flow` plus `/dev-flow-cr` commands.
+Then restart Codex so it discovers the skills and `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` commands.
 
 ## Install from npm package contents
 
@@ -57,6 +60,9 @@ Use the slash command when available:
 ```text
 /dev-flow <your task>
 /dev-flow-cr <optional review scope>
+/dev-flow-loop <optional loop scope>
+/dev-flow-triage <optional triage scope>
+/dev-flow-scheduler <approved automation action>
 ```
 
 Or ask Codex to use the master skill explicitly:
@@ -86,7 +92,7 @@ dev-flow doctor-codex
 
 Restart Codex after updating.
 
-If you installed an earlier adapter, `dev-flow update-codex` adds the missing `/dev-flow` and `/dev-flow-cr` command symlinks.
+If you installed an earlier adapter, `dev-flow update-codex` adds the missing `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` command symlinks.
 
 ## Uninstalling
 
@@ -94,6 +100,9 @@ If you installed an earlier adapter, `dev-flow update-codex` adds the missing `/
 rm ~/.agents/skills/dev-flow-skills
 rm ~/.agents/commands/dev-flow.md
 rm ~/.agents/commands/dev-flow-cr.md
+rm ~/.agents/commands/dev-flow-loop.md
+rm ~/.agents/commands/dev-flow-triage.md
+rm ~/.agents/commands/dev-flow-scheduler.md
 ```
 
 Optionally delete the clone:

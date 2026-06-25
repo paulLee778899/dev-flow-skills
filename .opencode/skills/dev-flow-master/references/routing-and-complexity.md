@@ -28,6 +28,12 @@ Reuse policy:
 | Git safety | `dev-flow-git` | worktree/branch modes, PR/direct/patch-ready modes, permissions, conflicts, rollback, cleanup |
 | Acceptance | `dev-flow-acceptance` | final regression, quality evidence, delivery report, acceptance readiness |
 | Code review | `dev-flow-cr` | Post-acceptance independent CR; user-triggered only via /dev-flow-cr; produces cr_report_ready signal |
+| Loop engineering | `dev-flow-loop` | User asks for loop engineering, outer loop control, recurring/repeated agent workflow design, loop scope review, automation proposal governance, loop evidence review, or deciding how an outer loop should hand off to /dev-flow without implementing | Direct dev-flow phases, scheduler mutations, implementation changes |
+| Loop triage | `dev-flow-loop-triage` | User asks to scan, triage, or monitor repo/CI/diff/issues/dev-flow artifacts to build a candidate inbox without modifying files | Direct fixes, code changes, scheduler creation |
+| Loop envelope | `dev-flow-loop-envelope` | User needs to define budget, permissions, cadence, stop conditions, or safety limits for a repeated/scheduled/background loop before it runs | Candidate scanning, implementation, scheduler mutations |
+| Scheduler | `dev-flow-scheduler` | User asks to create, update, view, pause, resume, or delete scheduled/recurring automations, heartbeat follow-ups, cron scans, or timed triage tasks | Loop logic design, implementation, running dev-flow phases |
+
+> **Loop engineering direct invocation note:** Loop engineering skills are invoked directly via `/dev-flow-loop`, `/dev-flow-triage`, `/dev-flow-loop-envelope`, or `/dev-flow-scheduler`. They are not routed through `dev-flow-intent` classification and do not enter the dev-flow phase gates. When a loop triage candidate is confirmed and `/dev-flow` is entered, the agent should note the `loop_triage_ready` signal path in the initial dev-flow intent description to preserve a traceable handoff record.
 
 Required loading rule: before stage-specific work, load the skill that owns that stage. Every new entry request must load `dev-flow-intent` before complexity classification unless the request is an explicit continuation inside a known phase and the current phase owner is already unambiguous. If areas overlap, the owner in the table above is authoritative. In particular, Git side effects are owned by `dev-flow-git`; execution may reference Git mode but must not invent Git permissions.
 
@@ -46,9 +52,11 @@ Before forcing the governed path, load `dev-flow-intent` and obtain `intent_deci
 | `ui-ux` | `dev-flow-ui-ux` | UI/UX-specific design and runtime verification, then normal gates if medium or heavyweight |
 | `status-recovery` | `dev-flow-master` | Reload persisted progress/orchestration/test/Git state before answering or continuing |
 | `question` | no governed owner by default | Answer directly or do read-only analysis unless user asks to enter dev-flow |
+| `loop_engineering` | direct loop skill invocation | Bypass: invoke `/dev-flow-loop`, `/dev-flow-triage`, `/dev-flow-loop-envelope`, or `/dev-flow-scheduler` directly; do not enter dev-flow phases or planning |
 
 Tie-breaker rule:
 
+- `loop_engineering` wins when the user invokes a loop slash command directly; skip `dev-flow-intent` classification entirely.
 - `change-adjustment` wins when the user modifies an active or recently approved baseline.
 - `review` wins when the user asks to evaluate rather than implement.
 - `debugging` wins when the request is about broken behavior, even if the broken surface is UI.

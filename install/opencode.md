@@ -35,8 +35,15 @@ dev-flow doctor --global
   command/
     dev-flow.md
     dev-flow-cr.md
+    dev-flow-loop.md
+    dev-flow-triage.md
+    dev-flow-scheduler.md
   skills/
     dev-flow-cr/
+    dev-flow-loop/
+    dev-flow-loop-envelope/
+    dev-flow-loop-triage/
+    dev-flow-scheduler/
     dev-flow-master/
     dev-flow-intent/
     dev-flow-debugging/
@@ -52,22 +59,29 @@ Each core skill keeps its short routing contract in `SKILL.md` and detailed inst
 
 `.opencode/skills` is the OpenCode package surface for the core `dev-flow-*` workflow. It is not a full mirror of the repository's top-level `skills/` directory; platform-specific or project-specific skills, such as `tk8620-firmware-workflow`, may exist only under `skills/` for Codex/Claude adapters.
 
-`dev-flow doctor` also checks core `references/`, `/dev-flow-cr`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+`dev-flow doctor` also checks core `references/`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, `/dev-flow-scheduler`, lightweight opsx/OpenSpec contract wording, Loop Engineering read-only boundaries, approved scheduler boundaries, stale command-name drift, and core `.opencode/skills` mirror consistency.
 
 ## Command
 
 ```text
 .opencode/command/dev-flow.md
 .opencode/command/dev-flow-cr.md
+.opencode/command/dev-flow-loop.md
+.opencode/command/dev-flow-triage.md
+.opencode/command/dev-flow-scheduler.md
 ```
 
-The `/dev-flow` command is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. The `/dev-flow-cr` command is independent and runs post-acceptance CR through `dev-flow-cr`; it is not an automatic `/dev-flow` stage.
+The `/dev-flow` command is intentionally thin. It enters `dev-flow-master`, which owns routing, classification, phase gates, and focused skill selection. The `/dev-flow-cr` command is independent and runs post-acceptance CR through `dev-flow-cr`; it is not an automatic `/dev-flow` stage. `/dev-flow-loop` and `/dev-flow-triage` are read-only Loop Engineering commands; they may recommend `/dev-flow` or `/dev-flow-cr`, then enter the equivalent owner flow only after explicit confirmation of a specific candidate. `/dev-flow-scheduler` separately manages approved cron/heartbeat automations and does not scan candidates or execute development work.
 
 ## Skills
 
 ```text
 .opencode/skills/dev-flow-master/
 .opencode/skills/dev-flow-cr/
+.opencode/skills/dev-flow-loop/
+.opencode/skills/dev-flow-loop-envelope/
+.opencode/skills/dev-flow-loop-triage/
+.opencode/skills/dev-flow-scheduler/
 .opencode/skills/dev-flow-intent/
 .opencode/skills/dev-flow-debugging/
 .opencode/skills/dev-flow-ui-ux/

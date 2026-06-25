@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dev Flow Scheduler"
+  short_description: "Create and manage safe automations"
+  default_prompt: "Use $dev-flow-scheduler to create or manage approved read-only dev-flow automations."

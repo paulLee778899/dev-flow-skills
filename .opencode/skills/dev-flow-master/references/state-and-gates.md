@@ -224,4 +224,41 @@ For lightweight work, the master may report `ready-to-report` only after `dev-fl
 
 After reporting `ready-to-report`, suggest that the user perform their own acceptance and then run `/dev-flow-cr` for independent post-acceptance code review when they want CR. Do not run CR automatically as part of `/dev-flow`.
 
+## Loop Engineering Signals
+
+Loop engineering signals operate at a separate layer from the dev-flow delivery workflow. They are produced by loop skills invoked directly via their slash commands and are **never written to `dev-flow-state.md`**. They do not participate in phase gates and do not interact with the delivery signal registry above.
+
+| Signal | Producer | Layer | Schema reference |
+|---|---|---|---|
+| `loop_control_ready` | `dev-flow-loop` | loop_engineering | see `skills/dev-flow-loop/SKILL.md#Required Signal` |
+| `loop_triage_ready` | `dev-flow-loop-triage` | loop_engineering | see `skills/dev-flow-loop-triage/SKILL.md#Required Signal` |
+| `loop_envelope_ready` | `dev-flow-loop-envelope` | loop_engineering | see `skills/dev-flow-loop-envelope/SKILL.md#Required Signal` |
+| `scheduler_ready` | `dev-flow-scheduler` | loop_engineering | see `skills/dev-flow-scheduler/SKILL.md#Required Signal` |
+
+```yaml
+loop_control_ready:
+  producer: dev-flow-loop
+  layer: loop_engineering (not written to dev-flow-state.md)
+  schema: see skills/dev-flow-loop/SKILL.md#Required Signal
+
+loop_triage_ready:
+  producer: dev-flow-loop-triage
+  layer: loop_engineering (not written to dev-flow-state.md)
+  schema: see skills/dev-flow-loop-triage/SKILL.md#Required Signal
+
+loop_envelope_ready:
+  producer: dev-flow-loop-envelope
+  layer: loop_engineering (not written to dev-flow-state.md)
+  schema: see skills/dev-flow-loop-envelope/SKILL.md#Required Signal
+
+scheduler_ready:
+  producer: dev-flow-scheduler
+  layer: loop_engineering (not written to dev-flow-state.md)
+  schema: see skills/dev-flow-scheduler/SKILL.md#Required Signal
+```
+
+### Loop → Dev-Flow Handoff Traceability
+
+When a loop triage candidate is confirmed and `/dev-flow` is entered to implement a fix or feature identified by the loop, the agent must note the `loop_triage_ready` signal path in the initial dev-flow intent description. This creates a traceable record that the work originated from a loop engineering cycle rather than a direct user request. The traceability note should include: the loop skill that produced the candidate, the timestamp or artifact path of the `loop_triage_ready` signal, and a brief description of why this candidate was selected from the triage inbox.
+
 For avoidance of doubt: a document or plan that only appeared in chat does not satisfy a persisted artifact requirement.

@@ -51,9 +51,9 @@ Recommended resolution order:
 
 This allows global defaults plus project-specific overrides.
 
-Platform adapters install the `/dev-flow` and `/dev-flow-cr` commands into the native discovery locations for each agent:
+Platform adapters install the `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` commands into the native discovery locations for each agent:
 
 - Codex: `~/.agents/skills/` and `~/.agents/commands/`
 - Claude Code: `~/.claude/skills/` and `~/.claude/commands/`
 
-The packaged `.opencode/skills` directory intentionally contains only the core `dev-flow-*` skills used by the OpenCode `/dev-flow` and `/dev-flow-cr` commands. The top-level `skills/` directory may contain additional Codex/Claude-compatible skills, such as `tk8620-firmware-workflow` or other project-specific workflows, and is not a full mirror of `.opencode/skills`.
+The packaged `.opencode/skills` directory intentionally contains only the core `dev-flow-*` skills used by the OpenCode `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` commands. The top-level `skills/` directory may contain additional Codex/Claude-compatible skills, such as `tk8620-firmware-workflow` or other project-specific workflows, and is not a full mirror of `.opencode/skills`.

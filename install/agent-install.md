@@ -25,7 +25,7 @@ Detect the current agent platform and follow the matching platform guide when on
   Unknown platform -> use the default global install, then report that no platform-specific adapter was applied.
 
 Do not overwrite existing modified files. Preserve local files and write incoming versions as .new unless I explicitly approve --force.
-After installation, report exactly what changed and what verification passed.
+After installation, report exactly what changed and what verification passed, including `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler` when supported.
 ```
 
 ## Default decision
@@ -57,7 +57,7 @@ Project target:
 5. Preserve existing modified files.
 6. Write or update `dev-flow-manifest.json` with version and checksums where applicable.
 7. Run the relevant doctor command for each installed adapter.
-8. Report exactly what changed and what was verified.
+8. Report exactly what changed and what was verified, including Loop Engineering and scheduler command availability when supported.
 
 ## Platform routing
 

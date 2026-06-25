@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dev Flow Loop"
+  short_description: "Loop Engineering control plane"
+  default_prompt: "Use $dev-flow-loop to inspect and govern a Loop Engineering run."

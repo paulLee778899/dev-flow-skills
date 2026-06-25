@@ -10,7 +10,7 @@ Governed development-flow skills for AI coding agents.
 clarify -> plan -> orchestrate -> execute -> accept
 ```
 
-Dev Flow Skills turns `/dev-flow` into a disciplined software-delivery workflow. It is designed for agents that need to clarify requirements, write real planning documents, build an executable task plan, coordinate implementation, handle Git safely, and finish with acceptance evidence instead of a chat-only summary.
+Dev Flow Skills turns `/dev-flow` into a disciplined software-delivery workflow. It is designed for agents that need to clarify requirements, write real planning documents, build an executable task plan, coordinate implementation, handle Git safely, and finish with acceptance evidence instead of a chat-only summary. It also includes read-only Loop Engineering commands for candidate discovery, safe handoff, and approved scheduler management before any user-approved dev-flow execution starts.
 
 ```mermaid
 flowchart LR
@@ -119,6 +119,10 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 | `dev-flow-planning` | Clarification before docs, formal planning docs, task DAG, and test matrix |
 | `dev-flow-execution` | Continuous execution, task settlement, dynamic replanning, and runtime state |
 | `dev-flow-git` | Worktree, shared-working-tree, branch, PR, patch, rollback, and conflict safety |
+| `dev-flow-loop` | Outer Loop Engineering control plane, safe handoff, and automation review |
+| `dev-flow-loop-envelope` | Loop budget, permissions, cadence, stop conditions, and lock policy |
+| `dev-flow-loop-triage` | Read-only candidate inbox from repo/CI/diff/OpenSpec/dev-flow evidence |
+| `dev-flow-scheduler` | Approved cron/heartbeat automation creation, update, pause, resume, view, and deletion |
 | `dev-flow-acceptance` | Final verification, quality evidence, and delivery report |
 | `dev-flow-cr` | Independent user-triggered post-acceptance code review and CR report |
 
@@ -144,6 +148,17 @@ Agent:
 14. Runs final acceptance and writes delivery evidence.
 15. Suggests user acceptance followed by optional `/dev-flow-cr`; CR is independent and not automatic.
 ```
+
+## Loop Engineering
+
+Loop Engineering is an outer control plane, not a `/dev-flow` phase.
+
+- `/dev-flow-triage` scans available evidence and builds a read-only Candidate Inbox.
+- `/dev-flow-loop` reviews loop design, envelope, budget, stop conditions, and safe handoff.
+- `/dev-flow-scheduler` creates, updates, views, pauses, resumes, or deletes approved cron/heartbeat automations; it does not scan candidates or design loop logic.
+- Loop and triage never write code, commit, push, open PRs, create worktrees, mutate trackers, create schedulers, run `/dev-flow`, or run `/dev-flow-cr` automatically.
+- If a candidate should be implemented or reviewed, the agent asks a concrete handoff question. After the user explicitly confirms a specific candidate, the agent may enter the equivalent `/dev-flow` or `/dev-flow-cr` owner flow without requiring another slash command.
+- Recurring repo scans should use read-only Candidate Inbox prompts; automatic fixes and full code review stay off by default.
 
 ## Generated artifacts
 
@@ -192,7 +207,8 @@ dev-flow version
 
 Platform-specific commands are documented in the platform guides. Codex uses `install-codex` / `doctor-codex`; Claude Code uses `install-claude` / `doctor-claude`. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
 
-Doctor commands check required files, planning templates, the `/dev-flow` and `/dev-flow-cr` commands, core `references/`, lightweight opsx/OpenSpec contract wording, stale command-name drift, and core `.opencode/skills` mirror consistency.
+Doctor commands check required files, planning templates, the `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, and `/dev-flow-triage` commands, core `references/`, lightweight opsx/OpenSpec contract wording, Loop Engineering read-only boundaries, stale command-name drift, and core `.opencode/skills` mirror consistency.
+Doctor commands also check `/dev-flow-scheduler`, approved automation boundaries, scheduler skill mirrors, and loop handoff wording.
 
 ## Safety model
 
@@ -206,5 +222,7 @@ Doctor commands check required files, planning templates, the `/dev-flow` and `/
 - Parallel no-worktree mode should use patch generation plus main-agent serial apply.
 - Final acceptance requires task self-review evidence and canonical Git integration states for every task.
 - Independent CR is user-triggered through `/dev-flow-cr` after the user accepts or inspects delivered work; it is not an automatic `/dev-flow` stage.
+- Loop Engineering commands are read-only by default and may recommend `/dev-flow` or `/dev-flow-cr`; they only enter the equivalent owner flow after explicit confirmation of a specific candidate.
+- Scheduler changes are isolated in `/dev-flow-scheduler` and require explicit approval for create/update/pause/resume/delete actions.
 - Local modifications are protected by manifest checksums during update.
 - Final success requires verification evidence, not only agent self-reporting.

@@ -32,7 +32,7 @@
 Use this shape for recurring triage scans:
 
 ```text
-Run a read-only dev-flow-triage style scan for <repo>.
+Run a read-only /dev-flow-loop-triage style scan for <repo>.
 
 Check only available evidence: git status, diff summary, visible test/CI artifacts, OpenSpec/opsx artifacts, dev-flow artifacts, CR reports, issue/PR/log evidence explicitly available.
 

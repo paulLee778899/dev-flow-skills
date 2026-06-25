@@ -114,11 +114,12 @@ This mode preserves the user's desire to avoid worktrees/branches while still al
 
 Each executing agent must:
 
-- use `superpowers:test-driven-development` when available; otherwise equivalent local TDD fallback
+- use `superpowers:test-driven-development` when available; otherwise equivalent local TDD fallback. This applies to lightweight and medium/heavy implementation work.
+- record TDD evidence for each behavior change: test name/path, RED command and expected failure, GREEN command and pass result, refactor verification, or explicit user-approved exception
 - run required diagnostics from `task-orchestration.md`
 - run required tests from the Executable Test Matrix
 - run additionally discovered related tests and update evidence
-- produce task self-review evidence: scope reviewed, risks checked, tests/diagnostics reviewed, and unresolved concerns; this contributes to `review_evidence_ready`
+- produce task local verification evidence: scope checked, risks checked, tests/diagnostics reviewed, and unresolved concerns; this is evidence for the independent acceptance checker, not a gate-impacting self-score
 - verify official docs/source or existing project patterns for frameworks/libraries/protocols/third-party integrations
 - verify UI/browser behavior in real browser or equivalent runtime where applicable, and produce `ui_ux_report` when the task or upstream debugging report carries `ui_runtime` risk
 - include security checks for auth/authz/user input/secrets/external integration/persistence
@@ -146,8 +147,14 @@ final_success:
   task_id: <string>
   status: final_success
   changed_files: [list of paths]
+  tdd_evidence:
+    mode: superpowers:test-driven-development | local_equivalent | approved_exception
+    red: <command and expected failure, or none with reason>
+    green: <command and pass result>
+    refactor: <verification after cleanup or "not needed">
   diagnostics: <output or "clean">
   tests_run: [list of test names or suites]
+  local_verification: <scope/risk/test review evidence>
   quality_evidence: <description or path>
   git_state: <canonical integration state or "none — patch pending">
   patch_state: <patch file path or "none — direct write">

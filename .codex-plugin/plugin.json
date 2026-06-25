@@ -1,7 +1,7 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.16",
-  "description": "Governed development-flow skills for AI coding agents with independent CR, read-only Loop Engineering triage, and approved scheduler automation management.",
+  "version": "0.1.17",
+  "description": "Governed development-flow skills for AI coding agents with independent CR, Loop Engineering delivery loops, read-only triage, and approved scheduler automation management.",
   "author": {
     "name": "paulLee778899",
     "url": "https://github.com/paulLee778899"
@@ -30,8 +30,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Dev Flow Skills",
-    "shortDescription": "Governed dev-flow with CR, loop triage, and scheduler",
-    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, formal planning documents, task orchestration, continuous execution, Git safety, final acceptance evidence, independent post-acceptance CR, read-only Loop Engineering triage/control, and approved cron/heartbeat scheduler management.",
+    "shortDescription": "Governed dev-flow with CR, loops, triage, and scheduler",
+    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, OpenSpec/opsx artifacts, task orchestration, continuous execution, Git safety, final acceptance evidence, independent post-acceptance CR, Loop Engineering delivery loops with Baseline Docs Gate, Execution Envelope Gate, phase DAG control, within-baseline auto-continue, read-only triage, and approved cron/heartbeat scheduler management.",
     "developerName": "paulLee778899",
     "category": "Coding",
     "capabilities": [
@@ -45,7 +45,7 @@
       "Use dev-flow to debug this failure and verify the fix.",
       "Use dev-flow-cr to review the current diff after acceptance.",
       "Use dev-flow-triage to build a read-only candidate inbox.",
-      "Use dev-flow-loop to review Loop Engineering safety before automation.",
+      "Use dev-flow-loop to design a goal-preserving delivery loop with loop-only baseline artifacts, a phase DAG, and safe auto-continue.",
       "Use dev-flow-scheduler to create or manage an approved read-only automation."
     ],
     "brandColor": "#2563EB",

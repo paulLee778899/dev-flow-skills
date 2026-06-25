@@ -26,9 +26,9 @@ Automatic replanning examples:
 Required artifact updates:
 
 1. Update `task-orchestration.md`: task IDs, dependencies, batches, acceptance criteria, diagnostics, tests, quality gates, done signals.
-2. Update `test-plan.md` when tests, fixtures, regression scope, or batch verification change.
+2. Update the OpenSpec/opsx test artifacts, or the loop baseline `test-plan.md` when present, when tests, fixtures, regression scope, or batch verification change.
 3. Update `dev-flow-state.md` and `progress.md`: replan decision, old/new task mapping, affected batches, current execution pointer, gate impact, and accepted risks.
-4. Update HLD/DDD if design details change without altering requirement baseline.
+4. Update OpenSpec/opsx design/spec artifacts when design details change without altering requirement baseline.
 5. Rebuild/reconcile Runtime Orchestration State.
 6. Recompute DAG and confirm no cycles.
 7. Continue with next eligible batch/sub-wave.
@@ -37,7 +37,7 @@ Runtime synchronization after any replan:
 
 1. Write artifact changes first.
 2. Re-read/reconstruct DAG from `task-orchestration.md`.
-3. Rebuild Executable Test Matrix from orchestration and test plan.
+3. Rebuild Executable Test Matrix from orchestration and persisted OpenSpec/opsx test artifacts, or the loop baseline test plan when present.
 4. Recompute batches/sub-waves.
 5. Reconcile runtime states:
    - running tasks remain running until settled
@@ -48,7 +48,7 @@ Runtime synchronization after any replan:
 6. Update current execution pointer.
 7. Confirm next dispatch uses updated runtime state, not stale memory.
 
-If runtime and persisted artifacts disagree, do not dispatch from memory. Reconcile using: actual Git/filesystem/task results → `dev-flow-state.md` → `task-orchestration.md` → `test-plan.md` → `progress.md` → chat memory. Rewrite `dev-flow-state.md` and `progress.md`, then continue automatically.
+If runtime and persisted artifacts disagree, do not dispatch from memory. Reconcile using: actual Git/filesystem/task results -> `dev-flow-state.md` -> OpenSpec/opsx artifacts -> `task-orchestration.md` -> loop baseline test plan when present -> `progress.md` -> chat memory. Rewrite `dev-flow-state.md` and `progress.md`, then continue automatically.
 
 Do not ask the user before replanning when all are true:
 
@@ -87,7 +87,7 @@ Do NOT auto-continue. Wait for explicit user selection before dispatching any fu
 
 Requirement change gate rules:
 
-- Re-enter Phase 1 Gate if requirement analysis changes materially: scope boundary, business goal, product/system requirement, or acceptance baseline.
+- Re-enter OpenSpec Baseline Gate if requirement analysis changes materially: scope boundary, business goal, product/system requirement, or acceptance baseline.
 - Re-enter Phase 2 Gate if requirement baseline is stable but design/task orchestration/Git execution plan changes materially.
 - No gate re-entry for inside-baseline replans: task split/merge for unresolved work, prerequisite task, test command, fixture/stub/mock, dependency reorder, or local implementation detail that does not alter requirements, acceptance, Git mode, or user-owned risk.
 
@@ -112,12 +112,12 @@ Mandatory handling:
 4. Load `dev-flow-planning` before continuing implementation.
 5. Update the affected planning artifacts first:
    - requirement analysis when scope/goal/acceptance changes
-   - HLD/DDD when design assumptions, API/protocol/data/security/UI/technology choices change
-   - test plan when verification scope or acceptance checks change
+   - OpenSpec/opsx design/spec artifacts when design assumptions, API/protocol/data/security/UI/technology choices change
+   - OpenSpec/opsx test artifacts, or loop baseline test plan when present, when verification scope or acceptance checks change
    - `task-orchestration.md` when task list, dependencies, batches, done signals, or Executable Test Matrix change
 6. Rewrite `dev-flow-state.md` and `progress.md` with the requirement-change summary, affected artifacts, stale tasks, completed-work classification, and next required gate.
 7. Re-enter the earliest required gate:
-   - Phase 1 Gate for requirement baseline or acceptance baseline changes
+   - OpenSpec Baseline Gate for requirement baseline or acceptance baseline changes
    - Phase 2 Gate for orchestration/Git/test-matrix changes with stable requirement baseline
 8. Wait for explicit user approval at that gate before dispatching any affected task.
 9. After approval, rebuild Runtime Orchestration State from the updated artifacts and continue the run-to-completion loop.
@@ -142,7 +142,7 @@ Update `Docs/<topic>/progress.md` or the canonical legacy path:
 - after retries, skips, rollbacks, pauses, fallbacks, or replans
 - before resuming after interruption
 
-Progress file is a recovery aid, not sole source of truth. Reconcile conflicts by: actual Git/filesystem/task results → `dev-flow-state.md` → `task-orchestration.md` → `test-plan.md` → `progress.md` → chat memory.
+Progress file is a recovery aid, not sole source of truth. Reconcile conflicts by: actual Git/filesystem/task results -> `dev-flow-state.md` -> OpenSpec/opsx artifacts -> `task-orchestration.md` -> loop baseline test plan when present -> `progress.md` -> chat memory.
 
 ## Execution Context Recovery
 
@@ -152,16 +152,17 @@ Before dispatching any task, rebuild Runtime Orchestration State from:
 
 1. actual Git/filesystem/task results
 2. `dev-flow-state.md`
-3. `task-orchestration.md`
-4. `test-plan.md`
-5. `progress.md`
-6. chat memory only as a last-resort hint
+3. OpenSpec/opsx artifacts
+4. `task-orchestration.md`
+5. loop baseline test plan when present
+6. `progress.md`
+7. chat memory only as a last-resort hint
 
 Mandatory recovery checks:
 
 - If `dev-flow-state.md` or `progress.md` records requirement change, `stale-pending`, gate re-entry, failed/blocked task, rollback, skip/defer decision, or pause, resume that recovery path first.
 - If a task is marked done but its changed files/tests/evidence are missing, treat it as not settled and re-verify before advancing.
-- If a task is marked done but task self-review, required UI/UX evidence, or canonical Git integration state is missing, treat it as not settled for acceptance.
+- If a task is marked done but task local verification evidence, TDD evidence, required UI/UX evidence, or canonical Git integration state is missing, treat it as not settled for acceptance.
 - If a task is marked running but no task agent is active, classify it as interrupted and either resume the same task context or retry without counting it as a task failure until a final signal exists. After **2 resume attempts** without a final signal, stop retrying: mark the task `final_failed` and record `interrupted_without_resolution` as the failure reason. Do not loop indefinitely on interrupted tasks.
 - If documents changed after Runtime Orchestration State was last built, rebuild DAG, batches, Executable Test Matrix, and current execution pointer.
 - Rewrite `dev-flow-state.md` and `progress.md` after reconciliation and before dispatching more work.
@@ -170,4 +171,4 @@ Never dispatch from stale memory after recovery. The first action after recovery
 
 ## Required Signal
 
-Emit `execution_settled` at batch boundaries and before acceptance with: Runtime Orchestration State summary, task states, final signals received, diagnostics/tests run, batch status, dynamic replans applied, fallbacks used, task self-review evidence status, and unresolved blockers. Emit and persist `review_evidence_ready` when integrated tasks have the required task self-review evidence.
+Emit `execution_settled` at batch boundaries and before acceptance with: Runtime Orchestration State summary, task states, final signals received, diagnostics/tests run, batch status, dynamic replans applied, fallbacks used, task local verification evidence status, TDD evidence status, and unresolved blockers. Emit and persist task-level evidence for `review_evidence_ready` only when integrated tasks have the required task local verification evidence and TDD evidence.

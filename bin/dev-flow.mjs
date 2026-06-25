@@ -37,28 +37,123 @@ const opsxRequiredPhrases = ['/opsx:ff', '/opsx:apply', '/opsx:verify'];
 const commandFileNames = ['dev-flow.md', 'dev-flow-cr.md', 'dev-flow-loop.md', 'dev-flow-triage.md', 'dev-flow-scheduler.md'];
 const crIndependentPhrase = 'Do not run as an automatic `/dev-flow` stage';
 const releaseMetadataKeywords = ['loop', 'triage', 'scheduler', 'automation'];
-const releaseMetadataDescriptionPhrases = ['Loop Engineering triage', 'scheduler automation'];
+const releaseMetadataDescriptionPhrases = ['Loop Engineering delivery loops', 'read-only triage', 'scheduler automation'];
+const pluginLoopPromptPhrase = 'goal-preserving delivery loop';
+const staleWorkflowPatterns = [
+  { pattern: 'opsx-propose', reason: 'old opsx command name' },
+  { pattern: 'lightweight-change', reason: 'ad hoc lightweight artifact name' },
+  { pattern: 'minimal local', reason: 'local-note fallback wording' },
+  { pattern: 'one-off direct', reason: 'direct-change fallback wording' },
+  { pattern: 'Codex slash-command', reason: 'commands are shared across Codex, OpenCode, and Claude surfaces' },
+  { pattern: 'planning_docs_ready', reason: 'old fixed planning-doc signal replaced by openspec_artifact_ready' },
+  { pattern: 'Document Self-Review Score', reason: 'gate scoring must use independent checker subagents' },
+  { pattern: 'design self-review score', reason: 'gate scoring must use independent checker subagents' },
+  { pattern: 'task self-review evidence', reason: 'task evidence is local verification; gate judgments use independent checker subagents' },
+  { pattern: 'self_reviewed', reason: 'baseline status must name independent checker review, not self-review' },
+];
+const loopTerminologyForbiddenPatterns = [
+  { pattern: 'test design docs', reason: 'fourth baseline doc must be test plan (`test-plan.md`)' },
+  { pattern: 'requirements, high-level design, detailed design, and test design', reason: 'use test plan (`test-plan.md`) as the fourth doc' },
+  { pattern: 'test_design', reason: 'schema token must be test_plan' },
+];
 const loopReadOnlyPhrases = [
   'Default read-only',
   'Do not start `/dev-flow`',
   'Do not start `/dev-flow-cr`',
   'loop_control_ready',
+  'loop_baseline_ready',
   'trace_or_eval_evidence',
   'maker-checker',
   'trigger type',
+  'independent checker score',
+  'Baseline Docs Gate',
+  'Execution Envelope Gate',
+  'Loop Phase DAG',
+  'phase-level OpenSpec/opsx',
+  'auto-continue within baseline',
+  'TDD per task via superpowers',
   'without requiring another slash command',
   'Do not start commits, pushes, PRs, merges, worktrees, schedulers, or external mutations automatically',
   'create, update, pause, resume, or delete schedulers/automations',
 ];
+const loopDeliveryPhrases = [
+  'loop_baseline_ready',
+  'loop-only baseline artifacts',
+  'independent checker score',
+  'quality_threshold: 95',
+  'Loop Phase DAG',
+  'Docs/<topic>/loop/',
+  'phase-artifacts.md',
+  'opsx-index.md',
+  'openspec/changes/<change-id>/',
+  'Do not move or copy OpenSpec/opsx originals into the loop artifact directory',
+  'Baseline Docs Gate',
+  'Execution Envelope Gate',
+  'phase-level OpenSpec/opsx',
+  'auto-continue within baseline',
+  'within_confirmed_baseline',
+  'explicit user approval',
+  'Freezing the initial baseline, approving the Loop Phase DAG, and enabling `within_confirmed_baseline` require explicit user approval',
+  'exceeding baseline, budget, retry, stop-condition, or side-effect boundaries requires stopping and asking the user',
+  'phase_eval',
+  'phase_eval threshold: 95',
+  'no P0/P1 finding',
+  'TDD per task via superpowers',
+  'requirements, high-level design, detailed design, and test plan (`test-plan.md`)',
+  'max phase repair rounds',
+];
+const loopBaselineTemplateFiles = [
+  'requirements.md',
+  'high-level-design.md',
+  'detailed-design.md',
+  'test-plan.md',
+];
+const loopBaselineTemplateDocPhrases = [
+  'dev-flow-loop/assets/baseline-templates',
+  'requirements.md',
+  'high-level-design.md',
+  'detailed-design.md',
+  'test-plan.md',
+  'dev-flow-master/templates',
+  'no longer exists',
+];
+const loopArtifactDirectoryPhrases = [
+  'Docs/<topic>/loop/',
+  'phase-artifacts.md',
+  'opsx-index.md',
+  'loop-state.md',
+  'openspec/changes/<change-id>/',
+  'Do not move or copy OpenSpec',
+];
+const staleLoopBaselineTemplateDocPatterns = [
+  { pattern: 'planning templates', reason: 'loop baseline templates are not dev-flow planning templates' },
+  { pattern: 'governed planning templates', reason: 'loop baseline templates are not governed planning templates' },
+  { pattern: 'skills/dev-flow-master/templates/', reason: 'templates moved to dev-flow-loop/assets/baseline-templates' },
+  { pattern: '.opencode/skills/dev-flow-master/templates/', reason: 'templates moved to dev-flow-loop/assets/baseline-templates' },
+  { pattern: '~/.claude/skills/dev-flow-master/templates/', reason: 'templates moved to dev-flow-loop/assets/baseline-templates' },
+  { pattern: 'installed `dev-flow-master/templates/` directory', reason: 'templates moved to dev-flow-loop/assets/baseline-templates' },
+];
+const commandSkeletonHeadings = ['# Dev Flow', '## Workflow', '## Rules', '## User Request'];
+const triageCommandSkeletonHeadings = ['# Dev Flow Triage', '## Workflow', '## Rules', '## User Request'];
+const loopCommandSkeletonHeadings = ['# Dev Flow Loop', '## Workflow', '## Rules', '## User Request'];
 const triageReadOnlyPhrases = [
   'Default read-only',
   'Candidate Inbox',
+  '结论',
+  '下一步推荐',
+  '可直接回复',
   'loop_triage_ready',
   'Do not start `/dev-flow`',
   'Do not start `/dev-flow-cr`',
   'trace_summary',
   'without requiring another slash command',
   'Do not modify files, Git history, trackers, CI, external services, or dev-flow delivery artifacts',
+  'do not include a `推荐入口` table column',
+];
+const triageForbiddenPatterns = [
+  ...staleWorkflowPatterns,
+  { pattern: '| 推荐入口 |', reason: 'triage table should not include route column' },
+  { pattern: '|推荐入口|', reason: 'triage table should not include route column' },
 ];
 const schedulerRequiredPhrases = [
   'dev-flow-scheduler',
@@ -70,14 +165,13 @@ const schedulerRequiredPhrases = [
   'Do not modify files, commit, push, open PRs, merge, create worktrees, mutate trackers, call production systems, or perform full code review',
   'Candidate Inbox',
 ];
-const staleWorkflowPatterns = [
-  { pattern: 'opsx-propose', reason: 'old opsx command name' },
-  { pattern: 'lightweight-change', reason: 'ad hoc lightweight artifact name' },
-  { pattern: 'minimal local', reason: 'local-note fallback wording' },
-  { pattern: 'one-off direct', reason: 'direct-change fallback wording' },
-];
 const staleRepositoryPatterns = [
   { pattern: '1Zihao/dev-flow-skills', reason: 'old repository URL' },
+];
+const staleReleaseMetadataPatterns = [
+  { pattern: 'read-only Loop Engineering triage/control', reason: 'loop metadata must include delivery loops, not only triage/control' },
+  { pattern: 'review Loop Engineering safety before automation', reason: 'loop default prompt must include delivery-loop use case' },
+  { pattern: 'independent CR, read-only Loop Engineering triage, and approved scheduler', reason: 'release description must mention Loop Engineering delivery loops' },
 ];
 const forbiddenOpenCodeInstallPaths = [
   { pattern: /^node_modules(\/|$)/, reason: 'local dependency directory must not be installed' },
@@ -93,7 +187,7 @@ const governanceSemanticChecks = [
     skill: 'dev-flow-master',
     label: 'master gates and lightweight signals',
     required: [
-      'Phase 1 Gate',
+      'OpenSpec Baseline Gate',
       'Phase 2 Gate',
       'execution_actor_decided',
       'ready-to-report',
@@ -101,6 +195,11 @@ const governanceSemanticChecks = [
       'opsx_apply_complete',
       'opsx_verify_complete',
       'Chat memory is never sufficient',
+      'loop-authorized phase handoff',
+      'confirmed loop baseline',
+      'Loop Phase DAG node',
+      'dev_flow_phase_handoff',
+      'Do not ask the user to retype `/dev-flow`',
     ],
   },
   {
@@ -108,12 +207,24 @@ const governanceSemanticChecks = [
     label: 'planning gates and orchestration',
     required: [
       'documentation_start_approved',
-      'planning_docs_ready',
+      'openspec_artifact_ready',
       'task_orchestration_ready',
       'Executable Test Matrix',
-      'Phase 1 Gate',
+      'OpenSpec Baseline Gate',
       'Phase 2 Gate',
+      'Loop Baseline Mode',
+      'Independent Checker Review Score',
+      'Loop Phase DAG',
+      'phase-level OpenSpec/opsx',
+      'Docs/<topic>/loop/',
+      'phase-artifacts.md',
+      'opsx-index.md',
+      'openspec/changes/<change-id>/',
+      'do not move or copy them into the loop artifact directory',
+      'TDD evidence requirement',
+      'OpenSpec/opsx baseline artifacts',
     ],
+    forbidden: loopTerminologyForbiddenPatterns,
   },
   {
     skill: 'dev-flow-execution',
@@ -126,6 +237,12 @@ const governanceSemanticChecks = [
       'Requirement Change During Execution',
       'Never dispatch from stale memory',
       'execution_settled',
+      'superpowers:test-driven-development',
+      'failing test first',
+      'TDD evidence',
+      'not settled for acceptance',
+      'TDD evidence status',
+      'task local verification evidence and TDD evidence',
     ],
   },
   {
@@ -160,8 +277,11 @@ const governanceSemanticChecks = [
       'dev-flow-loop-envelope',
       'dev-flow-loop-triage',
       'loop_control_ready',
+      'loop_baseline_ready',
       'Loop Primitives',
       'goal',
+      'baseline',
+      'phase_dag',
       'trigger',
       'trace',
       'eval',
@@ -172,7 +292,28 @@ const governanceSemanticChecks = [
       'maker-checker',
       'handoff_question',
       'dev-flow-scheduler',
+      'independent checker score',
+      'loop-only baseline artifacts',
+      'Baseline Docs Gate',
+      'Execution Envelope Gate',
+      'Loop Phase DAG',
+      'phase-level OpenSpec/opsx',
+      'Docs/<topic>/loop/',
+      'phase-artifacts.md',
+      'opsx-index.md',
+      'openspec/changes/<change-id>/',
+      'Do not move or copy OpenSpec/opsx originals into the loop artifact directory',
+      'auto-continue within baseline',
+      'TDD per task via superpowers',
+      'quality_threshold: 95',
+      'phase_eval',
+      'phase_eval threshold: 95',
+      'no P0/P1 finding',
+      'test plan (`test-plan.md`)',
+      'Freezing the initial baseline, approving the Loop Phase DAG, and enabling `within_confirmed_baseline` require explicit user approval',
+      'exceeding baseline, budget, retry, stop-condition, or side-effect boundaries requires stopping and asking the user',
     ],
+    forbidden: loopTerminologyForbiddenPatterns,
   },
   {
     skill: 'dev-flow-loop-envelope',
@@ -182,6 +323,12 @@ const governanceSemanticChecks = [
       'budget',
       'stop_conditions',
       'repo_writer_lock',
+      'baseline_authority',
+      'auto_continue_scope',
+      'confirmed_loop_baseline',
+      'within_confirmed_baseline',
+      'max_phase_repair_rounds',
+      'max_full_loop_passes',
       'forbidden_side_effects',
       'schedule_kind',
       'cron_expression',
@@ -209,6 +356,10 @@ const governanceSemanticChecks = [
       'trace_summary',
       'sources_unavailable',
       'handoff_question',
+      '结论',
+      '下一步推荐',
+      '可直接回复',
+      'not as a Candidate Inbox table column',
     ],
   },
   {
@@ -236,6 +387,29 @@ const governanceSemanticChecks = [
       '/opsx:verify <change>',
       'canonical Git/patch integration state',
       'not-ready',
+      'TDD evidence',
+      'phase-level OpenSpec/opsx evidence',
+      'independent acceptance checker',
+      'system-level checks',
+      'requirements/design/test coverage',
+      'Executable Test Matrix',
+    ],
+  },
+  {
+    skill: 'dev-flow-planning',
+    label: 'detailed test matrix coverage',
+    required: [
+      'normal path and alternative path',
+      'invalid input and boundary conditions',
+      'permission/auth/authz failures',
+      'persistence, migration, rollback, and retry behavior',
+      'concurrency, async timing, idempotency, and ordering issues',
+      'API/protocol/data compatibility and contract errors',
+      'UI loading, error, empty, responsive, accessibility, and browser-runtime cases',
+      'security and abuse cases',
+      'performance limits and regression budgets',
+      'integration points, external dependency failures, and offline/degraded modes',
+      'system-level checks',
     ],
   },
 ];
@@ -760,14 +934,14 @@ function checkInstalledOpenCodeSemantics(target) {
     {
       label: 'OpenCode loop command contract',
       filePath: path.join(target, 'command', 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'OpenCode triage command contract',
       filePath: path.join(target, 'command', 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'OpenCode scheduler command contract',
@@ -815,14 +989,14 @@ function checkCodexSemantics(skillsTarget, commandsTarget) {
     {
       label: 'Codex loop command contract',
       filePath: path.join(commandsTarget, 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'Codex triage command contract',
       filePath: path.join(commandsTarget, 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'Codex scheduler command contract',
@@ -870,14 +1044,14 @@ function checkClaudeSemantics(skillsTargetRoot, commandsTarget) {
     {
       label: 'Claude loop command contract',
       filePath: path.join(commandsTarget, 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'Claude triage command contract',
       filePath: path.join(commandsTarget, 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'Claude scheduler command contract',
@@ -919,8 +1093,8 @@ function checkSourceSemantics() {
     {
       label: 'README loop scheduler docs',
       filePath: path.join(packageRoot, 'README.md'),
-      required: ['/dev-flow-scheduler', 'dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command'],
-      forbidden: staleWorkflowPatterns,
+      required: ['/dev-flow-scheduler', 'dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command', ...loopDeliveryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'workflow overview lightweight path',
@@ -931,8 +1105,8 @@ function checkSourceSemantics() {
     {
       label: 'workflow overview loop scheduler path',
       filePath: path.join(packageRoot, 'docs', 'workflow-overview.md'),
-      required: ['/dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command'],
-      forbidden: staleWorkflowPatterns,
+      required: ['/dev-flow-scheduler', 'Candidate Inbox', 'without requiring another slash command', ...loopDeliveryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'packaged OpenCode command',
@@ -949,14 +1123,14 @@ function checkSourceSemantics() {
     {
       label: 'packaged OpenCode loop command',
       filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'packaged OpenCode triage command',
       filePath: path.join(packageRoot, '.opencode', 'command', 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'packaged OpenCode scheduler command',
@@ -979,14 +1153,14 @@ function checkSourceSemantics() {
     {
       label: 'packaged Codex loop command',
       filePath: path.join(codexCommandsSourceRoot, 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'packaged Codex triage command',
       filePath: path.join(codexCommandsSourceRoot, 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'packaged Codex scheduler command',
@@ -1009,14 +1183,14 @@ function checkSourceSemantics() {
     {
       label: 'packaged Claude loop command',
       filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-loop.md'),
-      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      required: ['dev-flow-loop', 'dev-flow-loop-envelope', 'dev-flow-loop-triage', ...loopReadOnlyPhrases, ...loopArtifactDirectoryPhrases],
+      forbidden: [...staleWorkflowPatterns, ...loopTerminologyForbiddenPatterns],
     },
     {
       label: 'packaged Claude triage command',
       filePath: path.join(claudeCommandsSourceRoot, 'dev-flow-triage.md'),
       required: ['dev-flow-loop-triage', ...triageReadOnlyPhrases],
-      forbidden: staleWorkflowPatterns,
+      forbidden: triageForbiddenPatterns,
     },
     {
       label: 'packaged Claude scheduler command',
@@ -1045,14 +1219,26 @@ function checkSourceSemantics() {
     {
       label: 'manual install current commands',
       filePath: path.join(packageRoot, 'install', 'manual-install.md'),
-      required: ['dev-flow install', 'dev-flow install-codex', 'dev-flow install-claude', 'dev-flow-scheduler.md'],
-      forbidden: staleRepositoryPatterns,
+      required: ['dev-flow install', 'dev-flow install-codex', 'dev-flow install-claude', 'dev-flow-scheduler.md', ...loopBaselineTemplateDocPhrases],
+      forbidden: [...staleRepositoryPatterns, ...staleLoopBaselineTemplateDocPatterns],
     },
     {
       label: 'OpenCode install boundary docs',
       filePath: path.join(packageRoot, 'install', 'opencode.md'),
-      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', 'dev-flow-scheduler.md'],
-      forbidden: staleRepositoryPatterns,
+      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', 'dev-flow-scheduler.md', '.opencode/skills/dev-flow-loop/assets/baseline-templates/', ...loopBaselineTemplateDocPhrases],
+      forbidden: [...staleRepositoryPatterns, ...staleLoopBaselineTemplateDocPatterns],
+    },
+    {
+      label: 'Claude install baseline template docs',
+      filePath: path.join(packageRoot, 'install', 'claude.md'),
+      required: ['~/.claude/skills/dev-flow-loop/assets/baseline-templates/', ...loopBaselineTemplateDocPhrases],
+      forbidden: [...staleRepositoryPatterns, ...staleLoopBaselineTemplateDocPatterns],
+    },
+    {
+      label: 'Codex install baseline template docs',
+      filePath: path.join(packageRoot, '.codex', 'INSTALL.md'),
+      required: ['skills/dev-flow-loop/assets/baseline-templates/', ...loopBaselineTemplateDocPhrases],
+      forbidden: [...staleRepositoryPatterns, ...staleLoopBaselineTemplateDocPatterns],
     },
     {
       label: 'installation model boundary docs',
@@ -1068,11 +1254,46 @@ function checkSourceSemantics() {
   }
   ok = checkGovernanceSemantics(codexSkillsRoot, 'source governance') && ok;
   ok = checkOpenCodeCoreSkillMirror() && ok;
+  ok = checkCommandParity() && ok;
   ok = checkOpenCodeInstallSurface() && ok;
   ok = checkOpenCodeSkillWhitelist() && ok;
+  ok = checkLoopBaselineTemplatePlacement() && ok;
   ok = checkReleaseMetadata() && ok;
   ok = checkSkillSizeLimits() && ok;
   ok = checkReferenceTablesOfContents() && ok;
+  return ok;
+}
+
+function checkLoopBaselineTemplatePlacement() {
+  let ok = true;
+  const sourceLoopTemplatesPath = path.join(codexSkillsRoot, 'dev-flow-loop', 'assets', 'baseline-templates');
+  const openCodeLoopTemplatesPath = path.join(sourceRoot, 'skills', 'dev-flow-loop', 'assets', 'baseline-templates');
+  const forbiddenTemplateDirs = [
+    path.join(codexSkillsRoot, 'dev-flow-master', 'templates'),
+    path.join(sourceRoot, 'skills', 'dev-flow-master', 'templates'),
+  ];
+
+  for (const fileName of loopBaselineTemplateFiles) {
+    const codexPath = path.join(sourceLoopTemplatesPath, fileName);
+    const openCodePath = path.join(openCodeLoopTemplatesPath, fileName);
+    const exists = existsSync(codexPath) && existsSync(openCodePath);
+    const same = exists && readFileSync(codexPath, 'utf8') === readFileSync(openCodePath, 'utf8');
+    ok = exists && same && ok;
+    console.log(`${exists && same ? '✓' : '✗'} loop baseline template: ${fileName}`);
+    if (!exists) {
+      console.log(`  expected in: ${sourceLoopTemplatesPath}`);
+      console.log(`  expected in: ${openCodeLoopTemplatesPath}`);
+    } else if (!same) {
+      console.log(`  mirror mismatch: ${fileName}`);
+    }
+  }
+
+  for (const dirPath of forbiddenTemplateDirs) {
+    const absent = !existsSync(dirPath);
+    ok = absent && ok;
+    console.log(`${absent ? '✓' : '✗'} no master templates directory: ${path.relative(packageRoot, dirPath)}`);
+  }
+
   return ok;
 }
 
@@ -1103,6 +1324,7 @@ function checkReleaseMetadata() {
     }),
     missingLabel: packageJsonPath,
     required: [...releaseMetadataKeywords, ...releaseMetadataDescriptionPhrases],
+    forbidden: staleReleaseMetadataPatterns,
   }) && ok;
 
   ok = checkContentSemantics({
@@ -1110,9 +1332,23 @@ function checkReleaseMetadata() {
     content: JSON.stringify({
       description: pluginJson.description,
       keywords: pluginJson.keywords,
+      interface: {
+        shortDescription: pluginJson.interface?.shortDescription,
+        longDescription: pluginJson.interface?.longDescription,
+        defaultPrompt: pluginJson.interface?.defaultPrompt,
+      },
     }),
     missingLabel: pluginJsonPath,
-    required: [...releaseMetadataKeywords, ...releaseMetadataDescriptionPhrases],
+    required: [
+      ...releaseMetadataKeywords,
+      ...releaseMetadataDescriptionPhrases,
+      pluginLoopPromptPhrase,
+      'Baseline Docs Gate',
+      'Execution Envelope Gate',
+      'phase DAG',
+      'within-baseline auto-continue',
+    ],
+    forbidden: staleReleaseMetadataPatterns,
   }) && ok;
 
   return ok;
@@ -1125,7 +1361,7 @@ function checkGovernanceSemantics(skillsRoot, labelPrefix) {
       label: `${labelPrefix}: ${check.label}`,
       dirPath: path.join(skillsRoot, check.skill),
       required: check.required,
-      forbidden: staleWorkflowPatterns,
+      forbidden: [...staleWorkflowPatterns, ...(check.forbidden ?? [])],
     }) && ok;
   }
 
@@ -1149,6 +1385,44 @@ function checkOpenCodeCoreSkillMirror() {
     const same = readFileSync(codexFile, 'utf8') === readFileSync(openCodeFile, 'utf8');
     ok = same && ok;
     console.log(`${same ? '✓' : '✗'} core skill mirror: ${relativePath}`);
+  }
+
+  return ok;
+}
+
+function checkCommandParity() {
+  let ok = true;
+  for (const fileName of commandFileNames) {
+    const codexPath = path.join(codexCommandsSourceRoot, fileName);
+    const openCodePath = path.join(sourceRoot, 'command', fileName);
+    const claudePath = path.join(claudeCommandsSourceRoot, fileName);
+    const pathsExist = [codexPath, openCodePath, claudePath].every((filePath) => existsSync(filePath));
+    if (!pathsExist) {
+      ok = false;
+      console.log(`✗ command parity: ${fileName} (missing command file)`);
+      continue;
+    }
+
+    const codexContent = readFileSync(codexPath, 'utf8');
+    const openCodeContent = readFileSync(openCodePath, 'utf8');
+    const claudeContent = readFileSync(claudePath, 'utf8');
+    const same = codexContent === openCodeContent && codexContent === claudeContent;
+    ok = same && ok;
+    console.log(`${same ? '✓' : '✗'} command parity: ${fileName}`);
+
+    const skeleton = fileName === 'dev-flow-loop.md'
+      ? loopCommandSkeletonHeadings
+      : fileName === 'dev-flow-triage.md'
+        ? triageCommandSkeletonHeadings
+        : commandSkeletonHeadings;
+    const skeletonOk = skeleton.every((heading) => codexContent.includes(heading));
+    ok = skeletonOk && ok;
+    console.log(`${skeletonOk ? '✓' : '✗'} command skeleton: ${fileName}`);
+    if (!skeletonOk) {
+      for (const heading of skeleton.filter((item) => !codexContent.includes(item))) {
+        console.log(`  missing heading: ${heading}`);
+      }
+    }
   }
 
   return ok;
@@ -1274,8 +1548,9 @@ function checkContentSemantics({ label, content, missingLabel, required = [], fo
     return false;
   }
 
-  const missing = required.filter((phrase) => !content.includes(phrase));
-  const stale = forbidden.filter(({ pattern }) => content.includes(pattern));
+  const normalizedContent = content.toLowerCase();
+  const missing = required.filter((phrase) => !normalizedContent.includes(String(phrase).toLowerCase()));
+  const stale = forbidden.filter(({ pattern }) => normalizedContent.includes(String(pattern).toLowerCase()));
 
   if (missing.length === 0 && stale.length === 0) {
     console.log(`✓ ${label}`);

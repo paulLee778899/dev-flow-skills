@@ -1,67 +1,64 @@
-# Phase 1 Documents Reference
+# Phase 1 OpenSpec Artifact Reference
 
 ## Table of Contents
 
-- [Phase 1 — Four Planning Documents](#phase-1--four-planning-documents)
+- [Phase 1 — OpenSpec Baseline Artifacts](#phase-1--openspec-baseline-artifacts)
 - [Canonical Workspace](#canonical-workspace)
-- [Requirement Variant](#requirement-variant)
+- [Artifact Variant](#artifact-variant)
 - [Brainstorming Handoff](#brainstorming-handoff)
+- [Loop Baseline Mode](#loop-baseline-mode)
 - [Review Mode](#review-mode)
-- [Design Sufficiency Gate](#design-sufficiency-gate)
+- [Artifact Sufficiency Gate](#artifact-sufficiency-gate)
+- [Independent Checker Review Score](#independent-checker-review-score)
 - [Diagram Governance](#diagram-governance)
 - [Revision Loop](#revision-loop)
-- [Phase 1 Signal](#phase-1-signal)
+- [OpenSpec Baseline Signal](#openspec-baseline-signal)
 
-## Phase 1 — Four Planning Documents
+## Phase 1 — OpenSpec Baseline Artifacts
 
-Governed medium/heavy work requires persisted local files:
+All dev-flow implementation work uses persisted OpenSpec/opsx artifacts as the documentation baseline. Medium/heavy work enriches the OpenSpec/opsx change with enough requirement, design, task, spec, and test evidence to support implementation, review, and system-level acceptance.
 
-1. 需求分析（product or software variant）
-2. 概要设计
-3. 详细设计
-4. 测试方案
+Expected baseline evidence:
 
-Template sources are skill-owned assets. Resolve them relative to the installed `dev-flow-master` skill directory first:
+- OpenSpec/opsx change directory and change ID
+- requirement/acceptance criteria artifacts required by the active schema
+- design/spec artifacts required by the active schema, with extra detail for medium/heavy work
+- task artifact with implementation scope and acceptance criteria
+- detailed test plan content in the OpenSpec/opsx artifact set
+- known blockers, assumptions, non-goals, and unresolved risks
+- independent checker review report and score
 
-- `dev-flow-master/templates/product-requirement-analysis.md`
-- `dev-flow-master/templates/software-requirement-analysis.md`
-- `dev-flow-master/templates/high-level-design.md`
-- `dev-flow-master/templates/detailed-design.md`
-- `dev-flow-master/templates/test-plan.md`
+Use `/opsx:ff <change>` to create or refresh artifacts when starting a new change, `/opsx:continue` when resuming a change, `/opsx:apply <change>` for implementation, and `/opsx:verify <change>` for verification evidence. If OpenSpec/opsx is missing, stop and ask the user to initialize/install it or explicitly exit dev-flow.
 
-Platform-specific install paths such as `.opencode/skills/dev-flow-master/templates/...`, `skills/dev-flow-master/templates/...`, `~/.agents/skills/dev-flow-skills/dev-flow-master/templates/...`, or `~/.claude/skills/dev-flow-master/templates/...` are valid only as resolved locations for the same skill-owned assets. Do not treat `.opencode` as the only template source.
-
-Do not overwrite templates. Generated artifacts go under the project docs workspace.
+Do not overwrite unrelated existing OpenSpec artifacts. Do not create loop-only baseline documents here; the four-document baseline belongs to `dev-flow-loop/assets/baseline-templates/` and is used only before loop execution is approved.
 
 ### Canonical Workspace
 
-- prefer `Docs/` if it exists, otherwise `docs/`, otherwise create `Docs/`
-- use `Docs/<topic>/` or `docs/<topic>/` for governed work
-- reuse an existing matching workspace or legacy flat artifact set before creating a new workspace
-- never leave the final governed document only in chat
+- prefer the project's existing OpenSpec/opsx location when present; for standard OpenSpec this is normally `openspec/changes/<change-id>/`
+- keep `dev-flow-state.md`, `task-orchestration.md`, `progress.md`, and `delivery-report.md` under `Docs/<topic>/` or `docs/<topic>/` when governed orchestration is needed
+- reuse an existing matching workspace or active OpenSpec change before creating a new change
+- never leave final requirements, design, tasks, or test strategy only in chat
 
 Workspace filenames:
 
-- `software-requirement-analysis.md` or `product-requirement-analysis.md`
-- `high-level-design.md`
-- `detailed-design.md`
-- `test-plan.md`
 - `dev-flow-state.md`
-- later: `task-orchestration.md`, `progress.md`, `delivery-report.md`
+- `task-orchestration.md`
+- `progress.md`
+- `delivery-report.md`
 
-Legacy path rule: a legacy flat artifact set is a directory that already contains one or more governed artifact filenames from the list above outside `Docs/<topic>/` or `docs/<topic>/`. Reuse it only when it clearly belongs to the active work; otherwise create the canonical topic directory.
+Legacy path rule: if a prior run already has matching dev-flow artifacts outside `Docs/<topic>/` or `docs/<topic>/`, reuse it only when it clearly belongs to the active work; otherwise create the canonical topic directory.
 
-### Requirement Variant
+### Artifact Variant
 
-Use product variant when centered on product/system composition, hardware+software, devices, protocol stacks, gateways, product features, deployment scenarios, or product functional/performance specification.
+Use richer product/system artifact detail when centered on product/system composition, hardware+software, devices, protocol stacks, gateways, product features, deployment scenarios, or product functional/performance specification.
 
-Use software variant when centered on software behavior: platform feature, application behavior, backend workflow, UI flow, permission logic, import/export, reporting, integration behavior, or scoped functional enhancement.
+Use richer software behavior artifact detail when centered on platform feature, application behavior, backend workflow, UI flow, permission logic, import/export, reporting, integration behavior, or scoped functional enhancement.
 
-If both are plausible and document shape materially changes, ask one short clarification question.
+If both are plausible and artifact shape materially changes, ask one short clarification question.
 
 ### Brainstorming Handoff
 
-**Optional helper skill:** Use `superpowers:brainstorming` when available for creative feature shaping, UI concepts, new workflows, or ambiguous behavior changes before implementation planning. Dev-flow still owns the persisted four-document output, review gates, task orchestration, and test matrix.
+**Optional helper skill:** Use `superpowers:brainstorming` when available for creative feature shaping, UI concepts, new workflows, or ambiguous behavior changes before implementation planning. Dev-flow still owns the persisted OpenSpec/opsx artifact baseline, review gates, task orchestration, and test matrix.
 
 Before drafting, the handoff must cover:
 
@@ -71,26 +68,44 @@ Before drafting, the handoff must cover:
 - risks / assumptions
 - testing concerns
 
-Brainstorming is preparation, not a substitute for persisted documents.
+Brainstorming is preparation, not a substitute for persisted OpenSpec/opsx artifacts.
 
 When converting approved requirements into implementation tasks, use the task-decomposition patterns from `superpowers:writing-plans` when available. Do not replace dev-flow's canonical `task-orchestration.md` or Executable Test Matrix with a superpowers plan file; adapt the useful task granularity, file-scope, TDD, and verification patterns into dev-flow artifacts.
+
+### Loop Baseline Mode
+
+When invoked from `dev-flow-loop` with a confirmed loop baseline:
+
+- The loop-owned requirements, high-level design, detailed design, and test plan (`test-plan.md`) are the upstream loop source of truth.
+- The loop artifact directory is normally `Docs/<topic>/loop/` or `docs/<topic>/loop/`.
+- Keep OpenSpec/opsx originals in `openspec/changes/<change-id>/` or the project's standard OpenSpec/opsx location; do not move or copy them into the loop artifact directory.
+- Use the loop's `phase-artifacts.md` or `opsx-index.md` only as an index that maps phase IDs to OpenSpec/opsx change IDs, canonical paths, status, verification evidence, and `phase_eval_result`.
+- Do not ask the user to re-confirm the same global baseline for every phase.
+- Do not regenerate the full loop-only baseline artifacts inside phase-level dev-flow.
+- Create phase-level OpenSpec/opsx artifacts that slice the baseline into the current phase's spec/tasks.
+- Create or update the phase-internal `task-orchestration.md` and Executable Test Matrix for implementation.
+- Record the loop ID, baseline doc paths, Loop Phase DAG node, envelope limits, and phase artifact index path in `dev-flow-state.md`.
+- Return to the loop/user if the phase needs to change requirements, non-goals, acceptance, API/protocol/data/security/release boundaries, or the overall test strategy.
+
+This keeps loop and dev-flow decoupled: loop owns the target and cross-phase DAG; dev-flow owns phase execution artifacts.
 
 ### Review Mode
 
 Supported modes:
 
-- `逐份审阅`
+- `逐项审阅`
 - `集中审阅`（default if no preference）
 
-Review mode controls delivery cadence, not which documents are required.
+Review mode controls delivery cadence, not which artifacts are required. Gate-impacting review must be performed by an independent checker subagent.
 
-### Design Sufficiency Gate
+### Artifact Sufficiency Gate
 
-Before Phase 1 Gate, verify:
+Before OpenSpec Baseline Gate, verify:
 
-- HLD and DDD use required template structure
+- OpenSpec/opsx artifacts exist and match the active schema
+- requirements, design/spec, tasks, and test strategy are persisted
 - protocol/interface-heavy triggers were evaluated
-- if protocol/API/stateful/cross-module work exists, HLD covers functional/workflow guidance and DDD covers concrete protocol design, API description, data, error, state, sequence, compatibility, security, observability, and test points when the DDD scope includes that protocol, API, state machine, or integration surface
+- if protocol/API/stateful/cross-module work exists, artifacts cover workflow guidance, concrete API/protocol description, data, error, state, sequence, compatibility, security, observability, and test points
 - framework/library choices that affect implementation are backed by official docs/source or existing project patterns
 - UI work records accessibility, responsive behavior, loading/error/empty states, and browser-runtime verification expectations
 - security-sensitive work records auth/authz/input validation/secret handling/error boundaries
@@ -99,22 +114,39 @@ Before Phase 1 Gate, verify:
 - no blocking TBD remains unresolved unless explicitly accepted by user
 - diagrams or ordered textual sequences exist where prose would be ambiguous
 
-If this fails, mark documents `not-ready` and revise before Phase 1 Gate.
+If this fails, mark artifacts `not-ready` and revise before OpenSpec Baseline Gate.
 
-If the same document fails the Design Sufficiency Gate more than **3 times** without satisfactory revision, emit a hard-stop and ask the user whether to: (a) narrow the scope to remove the unresolvable section, (b) mark the section as a known TBD with an explicit deferral, or (c) abort the governed path and re-classify. Do not allow unbounded revision loops.
+If the same artifact set fails the Artifact Sufficiency Gate more than **3 times** without satisfactory revision, emit a hard-stop and ask the user whether to: (a) narrow the scope to remove the unresolvable section, (b) mark the section as a known TBD with an explicit deferral, or (c) pause. Do not allow unbounded revision loops.
+
+### Independent Checker Review Score
+
+Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn an independent checker subagent to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
+
+Score dimensions:
+
+- requirements clarity and acceptance criteria
+- blocker/non-goal coverage
+- design/spec consistency and implementability
+- API/protocol/data/security/UI/performance/release coverage when applicable
+- test plan coverage, including every likely behavior, edge case, failure mode, TDD entry point, and final system-level verification
+- no unresolved TBD/TODO/contradiction unless explicitly accepted as risk
+
+For loop-only baseline artifacts and medium/heavy OpenSpec baseline artifacts, score must be at least 95 before asking the user to approve execution. If the score is below 95, revise the artifacts and run another independent checker pass. Stop after 3 checker revision rounds and ask the user to narrow scope, accept a known risk, or pause.
+
+Persist the checker score, checker identity/model when available, raw artifact scope, findings, and revision notes in `dev-flow-state.md` for normal governed planning, or in the loop baseline artifact for loop-owned docs.
 
 ### Diagram Governance
 
-For formal product/system documents, diagrams are governed assets. Use `.drawio` editable source + `.svg` publishable asset + Markdown SVG reference when the document includes architecture, protocol flow, or state-machine diagrams. Mermaid is acceptable only for quick internal sketches.
+For formal product/system OpenSpec artifacts, diagrams are governed assets. Use `.drawio` editable source + `.svg` publishable asset + Markdown SVG reference when the artifact includes architecture, protocol flow, or state-machine diagrams. Mermaid is acceptable only for quick internal sketches.
 
 ### Revision Loop
 
 - Apply requested revisions and re-present for confirmation.
-- Track revision count per document in `dev-flow-state.md`.
-- Maximum 3 revisions per document per session.
+- Track revision count per artifact set in `dev-flow-state.md`.
+- Maximum 3 checker revision rounds per artifact set per session.
 - After 3 revisions, present choices: accept current version, restart that document from brainstorming, or pause.
 - Do not silently apply a 4th revision.
 
-### Phase 1 Signal
+### OpenSpec Baseline Signal
 
-Emit and persist `planning_docs_ready` with: four document paths, requirement variant, review mode, design sufficiency result, unresolved/accepted risks, Phase 1 Gate readiness, and the `dev-flow-state.md` path.
+Emit and persist `openspec_artifact_ready` with: OpenSpec change path, generated artifact list, artifact variant, review mode, independent checker score, checker findings path or summary, unresolved/accepted risks, OpenSpec Baseline Gate readiness, and the `dev-flow-state.md` path. In loop-authorized phase mode, also include the loop artifact directory and `phase-artifacts.md` or `opsx-index.md` path, while keeping the canonical OpenSpec change path outside the loop directory.

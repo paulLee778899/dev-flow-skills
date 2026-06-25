@@ -12,7 +12,7 @@ Read-only observation skill for Loop Engineering. It produces a candidate inbox 
 - Default read-only. Do not modify implementation files, tests, configs, generated assets, Git history, trackers, CI, or external systems.
 - Do not start `/dev-flow` or `/dev-flow-cr` automatically; ask for explicit confirmation of a specific candidate before entering the equivalent owner flow.
 - Do not write `dev-flow-state.md`; loop triage is outside governed delivery state.
-- Persist a triage report only when the user explicitly asks for a report file.
+- Persist `loop_triage_ready` and any requested triage report to `loop-state.md` in the loop artifact directory; never to `dev-flow-state.md`.
 
 ## Language Policy
 
@@ -24,8 +24,10 @@ All user-facing replies in dev-flow are in Chinese.
 2. Inspect strongest available evidence; do not invent missing CI/tracker data.
 3. Record the trace: sources checked, sources unavailable, commands inspected, and side effects performed.
 4. Deduplicate candidates by root cause, changed files, issue ID, OpenSpec change, or failing command.
-5. Rank candidates by severity, confidence, owner route, and whether user approval is needed.
-6. For `/dev-flow` or `/dev-flow-cr` recommendations, include a concrete handoff question; if the user confirms a specific candidate, enter that owner flow without requiring another slash command.
+5. Rank candidates by severity, confidence, evidence strength, and whether user approval is needed.
+6. Present a conclusion-first response before the table: `结论`, `下一步推荐`, and `可直接回复`.
+7. Keep route recommendations in the conclusion and `loop_triage_ready` signal, not as a Candidate Inbox table column.
+8. For `/dev-flow` or `/dev-flow-cr` recommendations, include a concrete handoff question; if the user confirms a specific candidate, enter that owner flow without requiring another slash command.
 
 ## References
 
@@ -36,6 +38,7 @@ All user-facing replies in dev-flow are in Chinese.
 ```yaml
 loop_triage_ready:
   producer: dev-flow-loop-triage
+  layer: loop_engineering
   timestamp: <ISO-8601>
   sources_checked: [list]
   sources_unavailable: [list or none]

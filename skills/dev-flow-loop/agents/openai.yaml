@@ -1,4 +1,4 @@
 interface:
   display_name: "Dev Flow Loop"
-  short_description: "Loop Engineering control plane"
-  default_prompt: "Use $dev-flow-loop to inspect and govern a Loop Engineering run."
+  short_description: "Goal-preserving Loop Engineering controller"
+  default_prompt: "Use $dev-flow-loop to confirm loop-only baseline artifacts, create a phase DAG, and drive dev-flow rounds inside an approved envelope."

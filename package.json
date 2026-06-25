@@ -1,7 +1,7 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.16",
-  "description": "Governed development-flow skills for AI coding agents with independent CR, read-only Loop Engineering triage, and approved scheduler automation management.",
+  "version": "0.1.17",
+  "description": "Governed development-flow skills for AI coding agents with independent CR, Loop Engineering delivery loops, read-only triage, and approved scheduler automation management.",
   "type": "module",
   "bin": {
     "dev-flow": "bin/dev-flow.mjs"
@@ -18,6 +18,7 @@
     "docs",
     "examples",
     "README.md",
+    "CONTRIBUTING.md",
     "CHANGELOG.md",
     "LICENSE"
   ],

@@ -13,7 +13,7 @@ All user-facing replies in dev-flow are in Chinese.
 
 ## Boundary
 
-Only emit `intent_decided`. Do not implement code, advance gates, write planning documents, start execution, or declare a stage complete. Master alone emits `routing_decided`.
+Only emit `intent_decided`. Do not implement code, advance gates, write OpenSpec/opsx artifacts, start execution, or declare a stage complete. Master alone emits `routing_decided`.
 
 ## Core Contract
 

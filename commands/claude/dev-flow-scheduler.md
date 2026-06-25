@@ -4,7 +4,7 @@ description: Create or manage approved read-only Dev Flow automations through de
 
 # Dev Flow Scheduler
 
-Use this command as the Claude slash-command entrypoint for creating, updating, viewing, pausing, resuming, or deleting approved Dev Flow automations.
+Use this command as the slash-command entrypoint for creating, updating, viewing, pausing, resuming, or deleting approved Dev Flow automations.
 
 ## Workflow
 

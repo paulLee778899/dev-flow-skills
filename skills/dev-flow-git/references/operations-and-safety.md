@@ -61,14 +61,14 @@ Rules:
 1. Confirm correct branch/worktree.
 2. Stage and commit changes.
 3. Open PR targeting integration branch.
-4. Request review or perform equivalent self-review when external review tooling is unavailable.
+4. Record local verification evidence when external review tooling is unavailable; this does not replace `/dev-flow-cr` or independent checker gates.
 5. Merge only after review passes and required checks allow it.
 
 ### Solo-dev direct-commit mode
 
 1. Confirm correct approved branch/worktree.
 2. Stage and commit changes.
-3. Perform and record self-review.
+3. Perform and record local verification evidence.
 4. Do not push or merge unless explicitly approved.
 
 ### Patch-ready mode

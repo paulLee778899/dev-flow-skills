@@ -9,7 +9,7 @@ description: Use when Phase 3 has started and the agent must execute continuousl
 
 This skill owns Phase 3 continuous execution: task dispatch, sub-agent coordination, settlement, replanning, and recovery.
 
-Does NOT make architectural decisions, modify planning documents, or bypass Phase 1/2 gates.
+Does NOT make architectural decisions, modify planning artifacts, or bypass OpenSpec Baseline / Phase 2 gates.
 
 ## Language Policy
 
@@ -18,6 +18,8 @@ All user-facing replies in dev-flow are in Chinese.
 ## Core Contract
 
 Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. Maintain Runtime Orchestration State, dispatch tasks under Git/writer limits, verify done signals, update progress, and move to acceptance when settled.
+
+Every implementation task, lightweight or heavyweight, must use `superpowers:test-driven-development` when available, or the local equivalent: failing test first, observed RED, minimal GREEN, refactor after green, and recorded evidence. This is a per-task execution rule, not a loop-layer responsibility.
 
 ## References
 

@@ -10,7 +10,7 @@ Governed development-flow skills for AI coding agents.
 clarify -> plan -> orchestrate -> execute -> accept
 ```
 
-Dev Flow Skills turns `/dev-flow` into a disciplined software-delivery workflow. It is designed for agents that need to clarify requirements, write real planning documents, build an executable task plan, coordinate implementation, handle Git safely, and finish with acceptance evidence instead of a chat-only summary. It also includes read-only Loop Engineering commands for candidate discovery, safe handoff, and approved scheduler management before any user-approved dev-flow execution starts.
+Dev Flow Skills turns `/dev-flow` into a disciplined software-delivery workflow. It is designed for agents that need to clarify requirements, maintain OpenSpec/opsx artifacts, build an executable task plan, coordinate TDD implementation, handle Git safely, and finish with acceptance evidence instead of a chat-only summary. It also includes Loop Engineering commands for goal-preserving multi-round control, candidate discovery, safe handoff, and approved scheduler management.
 
 ```mermaid
 flowchart LR
@@ -116,7 +116,7 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 | `dev-flow-debugging` | Root-cause-first debugging route and regression evidence |
 | `dev-flow-ui-ux` | UI/UX route with browser, responsive, interaction, and visual verification expectations |
 | `dev-flow-review` | Read-first review route with findings, risks, and test gaps |
-| `dev-flow-planning` | Clarification before docs, formal planning docs, task DAG, and test matrix |
+| `dev-flow-planning` | Clarification before OpenSpec/opsx artifacts, independent checker review, task DAG, detailed test matrix, and Git safety prep |
 | `dev-flow-execution` | Continuous execution, task settlement, dynamic replanning, and runtime state |
 | `dev-flow-git` | Worktree, shared-working-tree, branch, PR, patch, rollback, and conflict safety |
 | `dev-flow-loop` | Outer Loop Engineering control plane, safe handoff, and automation review |
@@ -138,8 +138,8 @@ Agent:
 4. Classifies feature/change work as lightweight, medium, or heavyweight.
 5. For lightweight work, uses opsx/OpenSpec artifacts such as `/opsx:ff`, `/opsx:apply`, and `/opsx:verify`.
 6. Enters planning mode when governed planning is required.
-7. Asks required clarification questions before writing documents.
-8. Writes requirement/design/test documents after user confirmation.
+7. Asks required clarification questions before writing or refreshing OpenSpec/opsx artifacts.
+8. Writes requirement/design/task/test evidence into the active OpenSpec/opsx artifact set after user confirmation.
 9. Builds task orchestration, parallel-safety rules, and an executable test matrix.
 10. Selects a Git strategy.
 11. Shows the proposed execution actor at Phase 2 Gate, after orchestration, overlap-risk, and Git checks.
@@ -153,22 +153,27 @@ Agent:
 
 Loop Engineering is an outer control plane, not a `/dev-flow` phase.
 
+- `/dev-flow-loop <goal>` preserves a goal across multiple dev-flow phases or repair rounds. It first gets Baseline Docs Gate approval for loop-only baseline artifacts: requirements, high-level design, detailed design, and test plan (`test-plan.md`) after independent checker score >= 95. These are outer-loop control artifacts, not `/dev-flow` implementation documents. Then it gets Execution Envelope Gate approval for the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries. Only after both gates pass does it hand phases to dev-flow inside the approved envelope.
 - `/dev-flow-triage` scans available evidence and builds a read-only Candidate Inbox.
-- `/dev-flow-loop` reviews loop design, envelope, budget, stop conditions, and safe handoff.
 - `/dev-flow-scheduler` creates, updates, views, pauses, resumes, or deletes approved cron/heartbeat automations; it does not scan candidates or design loop logic.
-- Loop and triage never write code, commit, push, open PRs, create worktrees, mutate trackers, create schedulers, run `/dev-flow`, or run `/dev-flow-cr` automatically.
+- Triage never writes code, commit, push, open PRs, create worktrees, mutate trackers, create schedulers, run `/dev-flow`, or run `/dev-flow-cr` automatically.
+- A confirmed delivery loop may auto-continue within baseline by handing phase-level work to dev-flow; phase implementation still uses OpenSpec/opsx artifacts, task orchestration, TDD per task via superpowers when available, acceptance evidence, and `phase_eval` checkpoints. `phase_eval` is not `/dev-flow-cr` and must not emit `cr_report_ready`.
+- Loop-owned artifacts live in `Docs/<topic>/loop/` or `docs/<topic>/loop/`. Phase OpenSpec/opsx originals stay in `openspec/changes/<change-id>/` or the project's standard OpenSpec/opsx location. Do not move or copy OpenSpec/opsx originals into the loop artifact directory; record phase mappings in `phase-artifacts.md` or `opsx-index.md`.
+- Loop `phase_eval threshold: 95`; auto-continue requires independent checker score >= 95 and no P0/P1 finding.
+- Freezing the initial baseline, approving the Loop Phase DAG, and enabling `within_confirmed_baseline` require explicit user approval; exceeding baseline, budget, retry, stop-condition, or side-effect boundaries requires stopping and asking the user.
+- Machine-checkable loop terms: `loop_baseline_ready`, `independent checker score`, `quality_threshold: 95`, `Baseline Docs Gate`, `Execution Envelope Gate`, `within_confirmed_baseline`, `phase-level OpenSpec/opsx`, and default max phase repair rounds of 3.
 - If a candidate should be implemented or reviewed, the agent asks a concrete handoff question. After the user explicitly confirms a specific candidate, the agent may enter the equivalent `/dev-flow` or `/dev-flow-cr` owner flow without requiring another slash command.
 - Recurring repo scans should use read-only Candidate Inbox prompts; automatic fixes and full code review stay off by default.
 
-## Generated artifacts
+## Generated Artifacts
 
-For governed work, the flow is designed to produce durable project artifacts such as:
+For implementation work, the flow uses the active project's OpenSpec schema as the durable implementation artifact set. Lightweight work keeps the artifact set small; medium/heavy work adds independent checker review, DAG, detailed test matrix, Git safety, and system-level checks. Expected evidence includes:
 
-- `product-requirement-analysis.md`
-- `software-requirement-analysis.md`
-- `high-level-design.md`
-- `detailed-design.md`
-- `test-plan.md`
+- `openspec/changes/<change>/`
+- generated proposal/tasks/spec/design artifacts required by the schema
+- `/opsx:apply` implementation/task status
+- `/opsx:verify` output
+- Git/patch state and unresolved risk notes
 - `dev-flow-state.md`
 - `task-orchestration.md`
 - runtime orchestration state
@@ -176,15 +181,41 @@ For governed work, the flow is designed to produce durable project artifacts suc
 - `delivery-report.md`
 - `cr-report.md` when the user later runs `/dev-flow-cr`
 
-For lightweight work, the flow uses the active project's OpenSpec schema instead of the four dev-flow planning docs. Expected evidence includes:
+For `/dev-flow-loop` delivery loops only, loop baseline artifacts may include:
 
-- `openspec/changes/<change>/`
-- generated proposal/tasks/spec/design artifacts required by the schema
-- `/opsx:apply` implementation/task status
-- `/opsx:verify` output
-- Git/patch state and unresolved risk notes
+- `Docs/<topic>/loop/requirements.md`
+- `Docs/<topic>/loop/high-level-design.md`
+- `Docs/<topic>/loop/detailed-design.md`
+- `Docs/<topic>/loop/test-plan.md`
+- `Docs/<topic>/loop/loop-phase-dag.md`
+- `Docs/<topic>/loop/loop-envelope.md`
+- `Docs/<topic>/loop/loop-state.md`
+- `Docs/<topic>/loop/phase-artifacts.md` or `Docs/<topic>/loop/opsx-index.md`
 
-Exact paths are project-specific and should be decided during planning.
+Those loop artifacts preserve the outer goal and approved envelope. Phase implementation still uses OpenSpec/opsx originals in `openspec/changes/<change-id>/` or the active project's standard OpenSpec/opsx location.
+
+Example layout:
+
+```text
+Docs/<topic>/
+  loop/
+    requirements.md
+    high-level-design.md
+    detailed-design.md
+    test-plan.md
+    loop-phase-dag.md
+    loop-envelope.md
+    loop-state.md
+    phase-artifacts.md
+openspec/
+  changes/
+    <change-id>/
+      proposal.md
+      tasks.md
+      specs/
+```
+
+The loop index links each phase to its OpenSpec/opsx change ID, canonical change path, status, verification evidence, and `phase_eval_result`.
 
 ## Skill layout
 
@@ -192,7 +223,7 @@ Core skills use progressive disclosure:
 
 - `SKILL.md` keeps triggers, ownership, hard rules, and the shortest safe route.
 - `references/` holds detailed contracts, signal tables, task schemas, recovery rules, and format examples that are loaded only when needed.
-- `templates/` under `dev-flow-master` holds the governed planning document templates.
+- `assets/baseline-templates/` under `dev-flow-loop` holds the four loop-only baseline templates: requirements, high-level design, detailed design, and test plan. `/dev-flow` implementation planning does not load or require these templates.
 
 This keeps frequently loaded skills small while preserving the full governance contract.
 
@@ -207,22 +238,24 @@ dev-flow version
 
 Platform-specific commands are documented in the platform guides. Codex uses `install-codex` / `doctor-codex`; Claude Code uses `install-claude` / `doctor-claude`. Use `--dry-run` to preview file operations and `--force` to overwrite modified installed files intentionally.
 
-Doctor commands check required files, planning templates, the `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, and `/dev-flow-triage` commands, core `references/`, lightweight opsx/OpenSpec contract wording, Loop Engineering read-only boundaries, stale command-name drift, and core `.opencode/skills` mirror consistency.
+Doctor commands check required files, loop baseline template placement, the `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, and `/dev-flow-triage` commands, core `references/`, OpenSpec/opsx contract wording, independent checker gates, Loop Engineering read-only boundaries, stale command-name drift, and core `.opencode/skills` mirror consistency.
 Doctor commands also check `/dev-flow-scheduler`, approved automation boundaries, scheduler skill mirrors, and loop handoff wording.
 
 ## Safety model
 
-- User confirmation is required before starting formal planning documents when clarification is incomplete.
+- User confirmation is required before starting or refreshing OpenSpec/opsx artifacts when clarification is incomplete.
 - Gate approvals and required signals are recorded in `dev-flow-state.md`; chat memory is not enough evidence for governed completion.
-- Lightweight work uses opsx/OpenSpec artifacts instead of the four dev-flow planning docs; if opsx/OpenSpec is unavailable, the workflow stops for user direction instead of silently doing chat-only or ad hoc planning.
+- All implementation work uses OpenSpec/opsx artifacts as the implementation baseline; if OpenSpec/opsx is unavailable, the workflow stops for user direction instead of silently doing chat-only or ad hoc planning.
 - Phase 2 Gate shows the proposed execution actor before implementation starts; direct concurrent writers and worktree creation require explicit approval.
 - Requirement changes during execution must return to planning before code changes continue.
 - Shared working-tree writes must be serialized.
 - Tasks with high file or symbol overlap must be serialized even when worktrees are available.
 - Parallel no-worktree mode should use patch generation plus main-agent serial apply.
-- Final acceptance requires task self-review evidence and canonical Git integration states for every task.
+- Final acceptance requires task local verification evidence and canonical Git integration states for every task.
+- Final acceptance requires TDD evidence for implementation tasks, system-level checks, requirements/design/test coverage, independent acceptance checker evidence, plus phase-level OpenSpec/opsx evidence for loop-authorized phases.
 - Independent CR is user-triggered through `/dev-flow-cr` after the user accepts or inspects delivered work; it is not an automatic `/dev-flow` stage.
 - Loop Engineering commands are read-only by default and may recommend `/dev-flow` or `/dev-flow-cr`; they only enter the equivalent owner flow after explicit confirmation of a specific candidate.
+- Delivery loops may auto-continue only inside confirmed loop baseline artifacts and envelope limits; baseline changes, side-effect expansion, Git/PR/push/worktree actions, paid/external mutations, and unresolved P0/P1 deferrals require explicit user approval.
 - Scheduler changes are isolated in `/dev-flow-scheduler` and require explicit approval for create/update/pause/resume/delete actions.
 - Local modifications are protected by manifest checksums during update.
 - Final success requires verification evidence, not only agent self-reporting.

@@ -4,7 +4,7 @@ description: Run independent post-acceptance code review through dev-flow-cr.
 
 # Dev Flow CR
 
-Use this command as the Codex slash-command entrypoint for independent Dev Flow code review.
+Use this command as the slash-command entrypoint for independent Dev Flow code review.
 
 ## Workflow
 

@@ -12,13 +12,28 @@ Check sources that are available in the current environment:
 
 Do not claim a source was checked when no tool or artifact was available.
 
+## Answer Shape
+
+Always put the user's decision point before the evidence table. The final response must use this order in Chinese:
+
+1. `结论`: one short paragraph with candidate count, highest severity, and the most important finding.
+2. `下一步推荐`: one primary recommendation, naming the candidate ID to handle first and why.
+3. `可直接回复`: 2-4 short reply options the user can send, such as `处理 L-002`, `先处理 L-001`, `保存 inbox`, or `暂不处理`.
+4. Candidate Inbox table.
+5. Scan limits and trace summary.
+6. `loop_triage_ready` signal.
+
+Do not bury the main handoff question only inside YAML. If a candidate should enter `/dev-flow` or `/dev-flow-cr`, surface that as the visible next-step recommendation and direct reply option.
+
+If no actionable candidates are found, still provide `结论`, `下一步推荐`, and `可直接回复`; recommend either saving the clean scan, scheduling a later scan, or providing additional evidence.
+
 ## Candidate Inbox
 
 Use this table in Chinese and keep it traceable:
 
-| ID | 候选事项 | 触发信号 | 证据 | 严重度 | 置信度 | 推荐入口 | 是否需要用户确认 |
-|---|---|---|---|---|---|---|---|
-| L-001 | ... | failing test / stale report / diff signal | file/command/artifact | P1 | high | `/dev-flow` | yes |
+| ID | 候选事项 | 触发信号 | 证据 | 严重度 | 置信度 | 是否需要用户确认 |
+|---|---|---|---|---|---|---|
+| L-001 | ... | failing test / stale report / diff signal | file/command/artifact | P1 | high | yes |
 
 Severity:
 
@@ -39,6 +54,7 @@ Confidence:
 - Recommend `/dev-flow-cr` only for independent review of an accepted/delivered diff; never run it automatically.
 - Recommend `manual_action` for credentials, account setup, production action, or ambiguous destructive work.
 - Recommend `external_tracker` when a task should be filed, but do not create it without authorization.
+- Do not add a `推荐入口` column to the Candidate Inbox table. Route belongs in `下一步推荐`, direct reply options, and the `recommended_next_route` signal field.
 - When recommending `/dev-flow` or `/dev-flow-cr`, ask a concrete handoff question such as `是否启动 dev-flow 处理 L-001？`; if the user clearly confirms that candidate, enter the owner flow without requiring another slash command.
 - Do not treat vague replies like `嗯`, `随便`, silence, or unrelated text as handoff approval.
 

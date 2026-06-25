@@ -29,7 +29,7 @@ When emitting the `git_safe` signal, use these exact `isolation_mode` values:
 ### Integration Mode
 
 - `PR/review/merge mode`: task branch → commit → PR → review → merge.
-- `solo-dev direct-commit mode`: local commit with equivalent self-review; no push/merge unless explicitly approved.
+- `solo-dev direct-commit mode`: local commit with task local verification evidence; no push/merge unless explicitly approved.
 - `patch-ready mode`: no stage/commit/push/PR/merge; report patch/diff-ready status and verification evidence.
 - `deferred`: Integration is intentionally postponed. The implementation is complete and committed in the isolation environment but has not been merged, pushed, or applied to any shared branch. Deferred integration requires an explicit re-entry into dev-flow-git to select and execute the final integration step.
 
@@ -53,7 +53,7 @@ Every completed task must use one of these canonical integration states:
 | `merged` | Task branch was merged into the approved integration branch. |
 | `committed` | Task changes were committed locally but not necessarily pushed or merged. |
 | `pr_opened` | A PR was opened and remains the integration handoff. |
-| `direct_commit_complete` | Solo-dev direct commit completed with self-review evidence. |
+| `direct_commit_complete` | Solo-dev direct commit completed with local verification evidence. |
 | `patch_ready` | Patch/diff is ready; no local apply, stage, commit, push, PR, or merge occurred. |
 | `shared_working_tree_applied` | A serial sub-agent directly modified the current working tree and the main agent verified the result. |
 | `applied_from_shared_worktree_patch` | A patch-ready sub-agent output was applied by the main agent to the shared working tree and verified. |

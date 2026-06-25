@@ -1,45 +1,30 @@
 ---
-description: Create or manage approved read-only Dev Flow automations through dev-flow-scheduler
+description: Create or manage approved read-only Dev Flow automations through dev-flow-scheduler.
 ---
 
-Enter Dev Flow Scheduler.
+# Dev Flow Scheduler
 
-Use `dev-flow-scheduler` to create, update, view, pause, resume, or delete approved automations. This command manages scheduling only; it does not design loop logic or execute development work.
+Use this command as the slash-command entrypoint for creating, updating, viewing, pausing, resuming, or deleting approved Dev Flow automations.
 
----
+## Workflow
 
-**Input**: The argument after `/dev-flow-scheduler` is the automation action, schedule, target, or management request.
+1. Use the `dev-flow-scheduler` skill as the owner.
+2. Treat the argument after `/dev-flow-scheduler` as the automation request.
+3. Load `dev-flow-loop-envelope` first when objective, scope, schedule, permissions, budget, stop conditions, or output are not already approved.
+4. Confirm the user has explicitly approved the automation action before applying create/update/pause/resume/delete.
+5. For recurring repo scans, use read-only `/dev-flow-triage` style prompts that produce a Candidate Inbox.
+6. Emit `scheduler_ready`.
 
-Examples:
+## Rules
 
-- `/dev-flow-scheduler create a daily read-only mesh risk scan`
-- `/dev-flow-scheduler pause the daily dev-flow triage automation`
-- `/dev-flow-scheduler show existing dev-flow automations`
-
----
-
-## What This Command Does
-
-It should:
-
-1. Enter the `dev-flow-scheduler` skill.
-2. Load `dev-flow-loop-envelope` first when objective, scope, schedule, permissions, budget, stop conditions, or output are not already approved.
-3. Confirm explicit user approval before applying create/update/pause/resume/delete.
-4. Use read-only `/dev-flow-triage` style prompts for recurring repo scans.
-5. Emit `scheduler_ready`.
-
-It should not:
-
-- Do not create, update, pause, resume, or delete automations without explicit user approval
-- scan candidates directly
-- Do not run `/dev-flow` automatically
-- Do not run `/dev-flow-cr` automatically
-- Do not modify files, commit, push, open PRs, merge, create worktrees, mutate trackers, call production systems, or perform full code review
-
----
-
-## Guardrails
-
-- Keep scheduler state separate from `dev-flow-state.md`.
+- Do not create, update, pause, resume, or delete automations without explicit user approval.
 - Prefer cron for detached workspace scans and heartbeat only for current-thread follow-ups.
-- Default recurring scan prompts to read-only Candidate Inbox output.
+- Do not scan candidates directly.
+- Do not run `/dev-flow` automatically.
+- Do not run `/dev-flow-cr` automatically.
+- Do not modify files, commit, push, open PRs, merge, create worktrees, mutate trackers, call production systems, or perform full code review.
+- Keep scheduler state separate from `dev-flow-state.md`.
+
+## User Request
+
+Apply the scheduler workflow above to the user's current request and any arguments supplied after `/dev-flow-scheduler`.

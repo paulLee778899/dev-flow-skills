@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.1.17] - 2026-06-25
+
+### Added
+- Add delivery-loop semantics to `/dev-flow-loop`: loop-only baseline artifacts, Baseline Docs Gate, Execution Envelope Gate, Loop Phase DAG, and within-baseline auto-continue.
+- Add loop baseline templates under `dev-flow-loop/assets/baseline-templates/` for requirements, high-level design, detailed design, and test plan.
+- Add phase-level loop signals and evidence expectations, including `loop_baseline_ready`, `phase_eval_result`, `loop_eval_result`, independent checker scoring, phase artifact indexes, and loop-state persistence.
+- Add stricter acceptance expectations for TDD evidence, system-level checks, requirements/design/test coverage, and independent checker review.
+
+### Changed
+- Route all implementation work through OpenSpec/opsx artifacts instead of the old dev-flow four-document implementation path.
+- Keep OpenSpec/opsx originals in their canonical project locations and store only loop indexes under `Docs/<topic>/loop/`.
+- Move four-document baseline templates out of `dev-flow-master` and into loop-owned assets.
+- Clarify loop-authorized dev-flow handoff rules, including when user confirmation is already covered by the approved loop baseline and envelope.
+- Strengthen doctor checks for command parity, loop template placement, OpenSpec/opsx wording, independent checker gates, and stale workflow terminology.
+- Update README, workflow overview, install docs, commands, and OpenCode/Codex/Claude mirrors for the new loop delivery model.
+
 ## [0.1.16] - 2026-06-25
 
 ### Added

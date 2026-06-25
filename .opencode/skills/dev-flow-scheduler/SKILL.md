@@ -13,7 +13,8 @@ Automation management skill for Dev Flow. It turns an approved loop envelope int
 - Do not scan candidates, implement fixes, run `/dev-flow`, run `/dev-flow-cr`, commit, push, open PRs, create worktrees, mutate trackers, or call production systems.
 - Do not run `/dev-flow` automatically.
 - Do not run `/dev-flow-cr` automatically.
-- For recurring code-risk scans, default to read-only `/dev-flow-triage` style prompts and Candidate Inbox output.
+- Persist `scheduler_ready` to `loop-state.md` in the loop artifact directory; never write it to `dev-flow-state.md`.
+- For recurring code-risk scans, default to read-only `/dev-flow-loop-triage` style prompts and Candidate Inbox output.
 - Use `dev-flow-loop-envelope` first when the user has not already approved objective, scope, schedule, permissions, budget, stop conditions, and output.
 
 ## Language Policy
@@ -37,6 +38,7 @@ All user-facing replies in dev-flow are in Chinese.
 ```yaml
 scheduler_ready:
   producer: dev-flow-scheduler
+  layer: loop_engineering
   timestamp: <ISO-8601>
   action: create | update | view | pause | resume | delete
   automation_kind: cron | heartbeat | interval | event | manual | none

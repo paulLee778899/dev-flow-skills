@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.19] - 2026-06-26
+
+### Changed
+- Reduce loop baseline and phase_eval checker requirement from at least 2 independent subagents to 1 checker subagent; update all signal schemas (`loop_baseline_ready`, `phase_eval_result`, `loop_eval_result`, `loop_control_ready`) from `independent_checker_scores` array to single `checker_score` integer.
+- Strengthen baseline document gate: writing any baseline artifact now requires explicit user confirmation in the current turn; prior discussion does not count as confirmation.
+- Clarify `final_checker_score` in `loop_eval_result` as the minimum `checker_score` across all completed phases.
+- Add scoring deduction (-15) when the checker subagent is the same agent instance that produced the artifacts under review.
+- Fix "Who does what" table: `phase_eval`/`loop_eval` row now reads "checker quality checkpoint" instead of "independent checker quality checkpoint".
+
 ## [0.1.18] - 2026-06-26
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "Governed development-flow skills for AI coding agents with independent CR, Loop Engineering delivery loops, read-only triage, and approved scheduler automation management.",
   "type": "module",
   "bin": {

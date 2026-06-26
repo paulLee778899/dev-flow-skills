@@ -27,15 +27,15 @@ Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed art
 | `intent_decided` | `dev-flow-intent` | task type, secondary types, confidence, evidence, risk flags, recommended route, required protocols |
 | `routing_decided` | `dev-flow-master` | intent result, classification, key dimensions, chosen path, next owner, next stage |
 | `documentation_start_approved` | `dev-flow-planning` | user confirmed OpenSpec/opsx artifact drafting or update should begin, clarification answers or accepted unknowns, review mode |
-| `openspec_artifact_ready` | `dev-flow-planning` or focused route owner | OpenSpec change ID/path, schema, generated artifact list, requirement/design/task/test evidence, independent checker score, known risks |
-| `task_orchestration_ready` | `dev-flow-planning` | `task-orchestration.md`, DAG/batches, detailed Executable Test Matrix, system-level checks, independent checker score, automation readiness result |
+| `openspec_artifact_ready` | `dev-flow-planning` or focused route owner | OpenSpec change ID/path, schema, generated artifact list, requirement/design/task/test evidence, independent checker scores/count, known risks |
+| `task_orchestration_ready` | `dev-flow-planning` | `task-orchestration.md`, DAG/batches, detailed Executable Test Matrix, system-level checks, independent checker scores/count, automation readiness result |
 | `lightweight_artifact_ready` | `dev-flow-master` or focused route owner | alias for lightweight `openspec_artifact_ready`; OpenSpec change ID/path, schema, generated artifact list, required apply artifacts, and `/opsx:ff` or `/opsx:continue` status |
 | `opsx_apply_complete` | focused route owner or main agent | applied tasks, implementation status, changed files, task checkbox state, and Git/patch state |
 | `opsx_verify_complete` | focused route owner or main agent | `/opsx:verify <change>` output, skipped checks with reasons, unresolved risks, and readiness recommendation |
 | `git_safe` | `dev-flow-git` | isolation mode, integration mode, permission/capability result, side-effect boundary |
 | `execution_actor_decided` | `dev-flow-master` | proposed execution actor shown at Phase 2 Gate, user approval or override, and writer concurrency boundary |
 | `ui_ux_report` | `dev-flow-ui-ux` | target surface, runtime/browser evidence or blocked reason, interaction/responsive/accessibility result |
-| `review_evidence_ready` | `dev-flow-acceptance` | task local verification evidence, TDD evidence, system-level evidence, requirements/design/test coverage, and independent checker score; independent CR is separate `/dev-flow-cr` evidence. Note: dev-flow-execution may write task-level local verification and TDD artifacts; dev-flow-acceptance aggregates these into the canonical review_evidence_ready signal. Only dev-flow-acceptance may emit the final form. |
+| `review_evidence_ready` | `dev-flow-acceptance` | task local verification evidence, TDD evidence, system-level evidence, requirements/design/test coverage, and independent checker scores/count; independent CR is separate `/dev-flow-cr` evidence. Note: dev-flow-execution may write task-level local verification and TDD artifacts; dev-flow-acceptance aggregates these into the canonical review_evidence_ready signal. Only dev-flow-acceptance may emit the final form. |
 | `execution_settled` | `dev-flow-execution` | batch/task status, Runtime Orchestration State summary, replan history, test/diagnostic evidence, unresolved blockers |
 | `acceptance_ready` | `dev-flow-acceptance` | final test results, quality evidence, delivery report path, Git/patch states, unresolved follow-ups |
 | `cr_report_ready` | `dev-flow-cr` | cr report file path, overall score, highest severity finding, blocking status (cr_blocked \| cr_passed \| cr_needs_defer_decision), review scope description |
@@ -94,7 +94,8 @@ acceptance_ready:
   quality_evidence_paths: [list of file paths]
   system_level_checks: [list of commands/evidence]
   requirements_design_test_coverage: complete | incomplete | deferred_with_user_approval
-  independent_checker_score: <0-100>
+  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
+  independent_checker_count: <integer, minimum 2>
   outstanding_deferred: [list of task ids or none]
 ```
 
@@ -113,7 +114,7 @@ Gate rules:
 
 - Do not enter governed planning without `routing_decided` choosing the governed path.
 - Do not draft or update OpenSpec/opsx baseline artifacts without `documentation_start_approved`.
-- Do not present OpenSpec Baseline Gate as ready without `openspec_artifact_ready` and independent checker score >= 95 for medium/heavy work. **Loop-authorized exception:** when all five loop-authorized phase mode conditions are met (see `references/routing-and-complexity.md § Loop-Authorized Phase Mode`), the Execution Envelope Gate approval covers user consent for phases inside the confirmed baseline. Do not re-prompt the user for a separate OpenSpec Baseline Gate approval; record `loop_authorized: true`, the `loop_id`, and the `loop_baseline_ready` + `loop_envelope_ready` signal paths in `dev-flow-state.md`, then proceed.
+- Do not present OpenSpec Baseline Gate as ready without `openspec_artifact_ready`, `independent_checker_count >= 2`, and all independent checker scores >= 95 for medium/heavy work. **Loop-authorized exception:** when all five loop-authorized phase mode conditions are met (see `references/routing-and-complexity.md § Loop-Authorized Phase Mode`), the Execution Envelope Gate approval covers user consent for phases inside the confirmed baseline. Do not re-prompt the user for a separate OpenSpec Baseline Gate approval; record `loop_authorized: true`, the `loop_id`, and the `loop_baseline_ready` + `loop_envelope_ready` signal paths in `dev-flow-state.md`, then proceed.
 - Do not present Phase 2 Gate as ready without `task_orchestration_ready` and `git_safe`. **Loop-authorized exception:** same five conditions as above — do not re-prompt for a separate Phase 2 Gate approval; record the same `loop_authorized` fields in `dev-flow-state.md` and proceed.
 - Do not execute code/config/test/user-visible changes until `openspec_artifact_ready` or `lightweight_artifact_ready` records the OpenSpec/opsx change context.
 - Do not accept lightweight work until `opsx_apply_complete` and `opsx_verify_complete` are recorded.
@@ -134,32 +135,32 @@ If a signal is missing, stale, or contradicted by actual Git/filesystem/task sta
 | Planning path selection | Main agent | No | Master internal routing |
 | Review-mode decision | Main agent + user | No | `dev-flow-planning` |
 | Brainstorming handoff | Main agent coordinating brainstorming | Yes, only through required brainstorming path | `dev-flow-planning` |
-| OpenSpec/opsx artifacts | Main agent | Yes for independent checker only | `dev-flow-planning`; must persist artifacts |
-| OpenSpec Baseline Gate | Main agent + independent checker + user | Yes, checker required | Mandatory explicit approval |
-| Task orchestration | Main agent + independent checker | Yes, checker required | `dev-flow-planning`; write DAG/test matrix |
+| OpenSpec/opsx artifacts | Main agent | Yes for independent checkers only | `dev-flow-planning`; must persist artifacts |
+| OpenSpec Baseline Gate | Main agent + independent checkers + user | Yes, at least 2 checkers required | Mandatory explicit approval |
+| Task orchestration | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-planning`; write DAG/test matrix |
 | Phase 2 gate | Main agent + user | No | Mandatory explicit approval; resolve Git modes via `dev-flow-git` |
 | Phase 3 execution | Main agent + task agents | Yes | `dev-flow-execution`; task agents implement only assigned scope |
 | Git operations | Main agent / task agent within approved mode | Yes within task scope | `dev-flow-git`; no unauthorized side effects |
-| Acceptance | Main agent + independent checker | Yes, checker required | `dev-flow-acceptance` |
-| Completion gate | Main agent + independent checker | Yes, checker required | `dev-flow-acceptance` evidence + checker score + master final decision |
+| Acceptance | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` |
+| Completion gate | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` evidence + checker scores/count + master final decision |
 
 Ownership rules:
 
 - If a stage is marked “Main agent,” do not delegate its governance decision to a task sub-agent. Use independent checker subagents only for review/eval; the main agent still owns coordination and user presentation.
 - A task sub-agent may implement only its assigned task; it must not rewrite orchestration, alter gates, or change dependency status.
 - Dynamic replanning is execution-internal and owned by `dev-flow-execution`; it is not a user-facing stage.
-- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by an independent checker subagent using raw artifacts, not the main agent's conclusion.
+- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by at least 2 independent checker subagents using raw artifacts, not the main agent's conclusion.
 
 ## Phase Gates
 
 ### OpenSpec Baseline Gate
 
-After `dev-flow-planning` produces or refreshes OpenSpec/opsx baseline artifacts and an independent checker score, stop and present:
+After `dev-flow-planning` produces or refreshes OpenSpec/opsx baseline artifacts and independent checker scores/count, stop and present:
 
 - OpenSpec change path and generated artifact list
 - artifact variant and schema
 - review mode applied
-- independent checker score and findings
+- independent checker scores/count and findings
 - accepted known risks
 - next step: task orchestration
 
@@ -177,7 +178,7 @@ After `dev-flow-planning` writes `task-orchestration.md` and `dev-flow-git` emit
 - Git isolation mode, integration mode, and writer concurrency limit
 - automation readiness status and blockers
 - detailed test matrix coverage summary, including system-level checks and unresolved test gaps
-- independent orchestration checker score and findings
+- independent orchestration checker scores/count and findings
 - execution mode, presented in Chinese:
   - `执行方式建议：基于当前 DAG、文件/符号重叠和 Git 安全边界，建议使用 <主线程串行 | 串行 subagent | patch-ready 并发分析 | 用户授权后的并发写入>。不会强制创建 worktree；如建议并发直接写入，需要你明确同意隔离方式。未授权时将使用串行写入或 shared-worktree patch mode。`
 
@@ -216,7 +217,7 @@ For governed medium/heavy work, the master may report `ready-to-report` only aft
 6. every task uses one canonical Git integration state from `dev-flow-git`: `merged`, `committed`, `pr_opened`, `direct_commit_complete`, `patch_ready`, `shared_working_tree_applied`, `applied_from_shared_worktree_patch`, or `deferred_accepted`
 7. task local verification evidence and TDD evidence exist for integrated work; independent CR is optional and user-triggered through `/dev-flow-cr`
 8. requirements/design/test coverage map is complete or explicitly deferred by the user
-9. independent acceptance checker score is >= 95 with no P0/P1 finding
+9. independent acceptance checker count is at least 2 and all checker scores are >= 95 with no P0/P1 finding
 10. applicable quality-gate evidence is recorded, including `ui_ux_report` when `ui_runtime` risk applies
 11. no unresolved blocker remains
 
@@ -230,7 +231,7 @@ For lightweight work, the master may report `ready-to-report` only after `dev-fl
 6. required focused-route evidence exists, including `debugging_report` for debugging work and `ui_ux_report` for UI runtime risk
 7. TDD evidence exists for implementation tasks or an approved exception is recorded
 8. final and system-level checks appropriate to the change pass or are explicitly marked N/A with reason
-9. independent acceptance checker score is >= 95 with no P0/P1 finding, unless the change is documentation-only with no behavior/config/test/user-visible impact
+9. independent acceptance checker count is at least 2 and all checker scores are >= 95 with no P0/P1 finding, unless the change is documentation-only with no behavior/config/test/user-visible impact
 10. no unresolved blocker remains
 
 After reporting `ready-to-report`, suggest that the user perform their own acceptance and then run `/dev-flow-cr` for independent post-acceptance code review when they want CR. Do not run CR automatically as part of `/dev-flow`.
@@ -282,7 +283,8 @@ phase_eval_result:
   loop_id: <matches loop_control_ready.loop_id>
   phase_id: <P-01 | P-02 | ...>
   round: <integer; 1 = first eval, 2+ = repair rounds>
-  independent_checker_score: <0-100>
+  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
+  independent_checker_count: <integer, minimum 2>
   quality_threshold: 95
   highest_finding_severity: P0 | P1 | P2 | none
   result: pass | repairable | stop
@@ -299,7 +301,8 @@ loop_eval_result:
   phases_completed: [list of phase_ids]
   phases_repaired: [list of phase_ids or none]
   phases_stopped: [list of phase_ids or none]
-  final_independent_checker_score: <0-100>
+  final_independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
+  final_independent_checker_count: <integer, minimum 2>
   highest_finding_severity: P0 | P1 | P2 | none
   result: complete | partial | stopped
   residual_risks: [list or none]

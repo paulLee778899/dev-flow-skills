@@ -25,7 +25,7 @@ This installs files into:
 
 The installed skills include the entry controller (`dev-flow-master`), intent routing (`dev-flow-intent`), focused routes for debugging/UI/UX/review, Loop Engineering control/triage/envelope, approved scheduler management, and the governed planning/execution/Git/acceptance skills.
 
-Each core skill keeps its short routing contract in `SKILL.md` and detailed instructions in `references/` for on-demand loading. The four loop-only baseline templates live under the installed `dev-flow-loop/assets/baseline-templates/` directory as `requirements.md`, `high-level-design.md`, `detailed-design.md`, and `test-plan.md`. `dev-flow-master/templates/` no longer exists and is rejected by the doctor command.
+Each core skill keeps its short routing contract in `SKILL.md` and detailed instructions in `references/` for on-demand loading. The loop-only baseline templates live under the installed `dev-flow-loop/assets/baseline-templates/` directory as `requirements.md`, `high-level-design.md`, `detailed-design.md`, `test-plan.md`, and `test-cases.xlsx`. `dev-flow-master/templates/` no longer exists and is rejected by the doctor command.
 
 The OpenCode install surface intentionally includes the core `dev-flow-*` skills only. Extra skills in the repository's top-level `skills/` directory are for platform adapters or project-specific use and are not automatically part of `.opencode/skills`.
 

@@ -51,6 +51,16 @@ const staleWorkflowPatterns = [
   { pattern: 'task self-review evidence', reason: 'task evidence is local verification; gate judgments use independent checker subagents' },
   { pattern: 'self_reviewed', reason: 'baseline status must name independent checker review, not self-review' },
 ];
+const staleSingleCheckerScorePatterns = [
+  { pattern: 'independent checker score,', reason: 'gate scoring must record independent checker scores/count, not a single score' },
+  { pattern: 'independent checker score >=', reason: 'gate scoring must require all checker scores, not a single score' },
+  { pattern: 'independent checker score is', reason: 'gate scoring must require all checker scores, not a single score' },
+  { pattern: 'checker score is', reason: 'gate scoring must require all checker scores, not a single score' },
+  { pattern: 'checker score >=', reason: 'gate scoring must require all checker scores, not a single score' },
+  { pattern: 'checker score/findings', reason: 'signals must persist independent checker scores/count and findings' },
+  { pattern: 'independent_checker_score:', reason: 'signal schema must use independent_checker_scores and independent_checker_count' },
+  { pattern: 'final_independent_checker_score:', reason: 'loop eval schema must use final_independent_checker_scores and final_independent_checker_count' },
+];
 const loopTerminologyForbiddenPatterns = [
   { pattern: 'test design docs', reason: 'fourth baseline doc must be test plan (`test-plan.md`)' },
   { pattern: 'requirements, high-level design, detailed design, and test design', reason: 'use test plan (`test-plan.md`) as the fourth doc' },
@@ -65,13 +75,17 @@ const loopReadOnlyPhrases = [
   'trace_or_eval_evidence',
   'maker-checker',
   'trigger type',
-  'independent checker score',
+  'independent_checker_scores',
+  'independent_checker_count',
   'Baseline Docs Gate',
   'Execution Envelope Gate',
   'Loop Phase DAG',
   'phase-level OpenSpec/opsx',
   'auto-continue within baseline',
   'TDD per task via superpowers',
+  'phase_eval_result.independent_checker_scores',
+  'phase_eval_result.independent_checker_count',
+  'all phase_eval checker scores >= 95',
   'without requiring another slash command',
   'Do not start commits, pushes, PRs, merges, worktrees, schedulers, or external mutations automatically',
   'create, update, pause, resume, or delete schedulers/automations',
@@ -79,7 +93,8 @@ const loopReadOnlyPhrases = [
 const loopDeliveryPhrases = [
   'loop_baseline_ready',
   'loop-only baseline artifacts',
-  'independent checker score',
+  'independent_checker_scores',
+  'independent_checker_count',
   'quality_threshold: 95',
   'Loop Phase DAG',
   'Docs/<topic>/loop/',
@@ -99,7 +114,7 @@ const loopDeliveryPhrases = [
   'phase_eval threshold: 95',
   'no P0/P1 finding',
   'TDD per task via superpowers',
-  'requirements, high-level design, detailed design, and test plan (`test-plan.md`)',
+  'requirements, high-level design, detailed design, test plan (`test-plan.md`), and test case workbook (`test-cases.xlsx`)',
   'max phase repair rounds',
 ];
 const loopBaselineTemplateFiles = [
@@ -107,6 +122,7 @@ const loopBaselineTemplateFiles = [
   'high-level-design.md',
   'detailed-design.md',
   'test-plan.md',
+  'test-cases.xlsx',
 ];
 const loopBaselineTemplateDocPhrases = [
   'dev-flow-loop/assets/baseline-templates',
@@ -114,6 +130,7 @@ const loopBaselineTemplateDocPhrases = [
   'high-level-design.md',
   'detailed-design.md',
   'test-plan.md',
+  'test-cases.xlsx',
   'dev-flow-master/templates',
   'no longer exists',
 ];
@@ -213,7 +230,9 @@ const governanceSemanticChecks = [
       'OpenSpec Baseline Gate',
       'Phase 2 Gate',
       'Loop Baseline Mode',
-      'Independent Checker Review Score',
+      'Independent Checker Review Scores',
+      'independent_checker_scores',
+      'independent_checker_count',
       'Loop Phase DAG',
       'phase-level OpenSpec/opsx',
       'Docs/<topic>/loop/',
@@ -224,7 +243,7 @@ const governanceSemanticChecks = [
       'TDD evidence requirement',
       'OpenSpec/opsx baseline artifacts',
     ],
-    forbidden: loopTerminologyForbiddenPatterns,
+    forbidden: [...loopTerminologyForbiddenPatterns, ...staleSingleCheckerScorePatterns],
   },
   {
     skill: 'dev-flow-execution',
@@ -292,7 +311,8 @@ const governanceSemanticChecks = [
       'maker-checker',
       'handoff_question',
       'dev-flow-scheduler',
-      'independent checker score',
+      'independent_checker_scores',
+      'independent_checker_count',
       'loop-only baseline artifacts',
       'Baseline Docs Gate',
       'Execution Envelope Gate',
@@ -310,10 +330,12 @@ const governanceSemanticChecks = [
       'phase_eval threshold: 95',
       'no P0/P1 finding',
       'test plan (`test-plan.md`)',
+      'test-cases.xlsx',
+      'all checker scores',
       'Freezing the initial baseline, approving the Loop Phase DAG, and enabling `within_confirmed_baseline` require explicit user approval',
       'exceeding baseline, budget, retry, stop-condition, or side-effect boundaries requires stopping and asking the user',
     ],
-    forbidden: loopTerminologyForbiddenPatterns,
+    forbidden: [...loopTerminologyForbiddenPatterns, ...staleSingleCheckerScorePatterns],
   },
   {
     skill: 'dev-flow-loop-envelope',
@@ -390,10 +412,13 @@ const governanceSemanticChecks = [
       'TDD evidence',
       'phase-level OpenSpec/opsx evidence',
       'independent acceptance checker',
+      'independent_checker_scores',
+      'independent_checker_count',
       'system-level checks',
       'requirements/design/test coverage',
       'Executable Test Matrix',
     ],
+    forbidden: staleSingleCheckerScorePatterns,
   },
   {
     skill: 'dev-flow-planning',
@@ -410,6 +435,8 @@ const governanceSemanticChecks = [
       'performance limits and regression budgets',
       'integration points, external dependency failures, and offline/degraded modes',
       'system-level checks',
+      'independent_checker_scores',
+      'independent_checker_count',
     ],
   },
 ];
@@ -1277,7 +1304,7 @@ function checkLoopBaselineTemplatePlacement() {
     const codexPath = path.join(sourceLoopTemplatesPath, fileName);
     const openCodePath = path.join(openCodeLoopTemplatesPath, fileName);
     const exists = existsSync(codexPath) && existsSync(openCodePath);
-    const same = exists && readFileSync(codexPath, 'utf8') === readFileSync(openCodePath, 'utf8');
+    const same = exists && sha256(readFileSync(codexPath)) === sha256(readFileSync(openCodePath));
     ok = exists && same && ok;
     console.log(`${exists && same ? '✓' : '✗'} loop baseline template: ${fileName}`);
     if (!exists) {
@@ -1382,7 +1409,7 @@ function checkOpenCodeCoreSkillMirror() {
       continue;
     }
 
-    const same = readFileSync(codexFile, 'utf8') === readFileSync(openCodeFile, 'utf8');
+    const same = sha256(readFileSync(codexFile)) === sha256(readFileSync(openCodeFile));
     ok = same && ok;
     console.log(`${same ? '✓' : '✗'} core skill mirror: ${relativePath}`);
   }

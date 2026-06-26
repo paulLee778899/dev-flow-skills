@@ -23,7 +23,7 @@ Main duties:
 4. Group tasks into execution batches; same-batch tasks have no unmet dependencies and no unresolved high file/symbol overlap risk.
 5. Convert the detailed test plan into concrete per-task, per-batch, final integration, and system-level checks.
 6. Write `Docs/<topic>/task-orchestration.md` or the canonical legacy path.
-7. Run an independent checker subagent against raw OpenSpec artifacts and `task-orchestration.md`; revise until the checker score is at least 95 or a hard blocker is reached.
+7. Run at least 2 independent checker subagents concurrently against raw OpenSpec artifacts and `task-orchestration.md`; revise until all checker scores are at least 95 or a hard blocker is reached.
 
 ## Loop Phase DAG Versus Task DAG
 
@@ -106,7 +106,7 @@ Final integration, regression, and system-level commands must be named before Ph
 
 ### Independent Orchestration Checker
 
-Before presenting Phase 2 Gate, spawn an independent checker subagent with only the raw OpenSpec/opsx artifacts, `task-orchestration.md`, relevant Git diff/status when needed, and the requested review criteria. Do not pass the main agent's expected score or conclusions.
+Before presenting Phase 2 Gate, spawn at least 2 independent checker subagents concurrently with only the raw OpenSpec/opsx artifacts, `task-orchestration.md`, relevant Git diff/status when needed, and the requested review criteria. Do not pass the main agent's expected score or conclusions.
 
 The checker must verify:
 
@@ -118,7 +118,7 @@ The checker must verify:
 - Git/writer safety assumptions are explicit
 - system-level tests cover the complete workflow and major failure modes
 
-The Phase 2 Gate is not ready unless independent checker score is at least 95 or the user explicitly accepts a documented risk.
+The Phase 2 Gate is not ready unless `independent_checker_count >= 2` and all independent checker scores are at least 95, or the user explicitly accepts a documented risk.
 
 ### Automation Readiness Checklist
 
@@ -132,7 +132,7 @@ Phase 2 is `not-ready` unless:
 - every batch has entry and exit criteria
 - final integration/regression commands are named
 - system-level acceptance commands are named
-- independent orchestration checker score is at least 95 or a documented risk is explicitly accepted
+- independent orchestration checker count is at least 2 and all checker scores are at least 95, or a documented risk is explicitly accepted
 - unresolved approvals, credentials, remotes, external services, or environment assumptions are listed as blockers
 - DAG has no cycles
 - task IDs are stable enough for progress tracking
@@ -147,4 +147,4 @@ If a cycle exists:
 
 ### Phase 2 Signal
 
-Emit and persist `task_orchestration_ready` with: task-orchestration path, task count, batch count, DAG/cycle status, parallel-safety status, forced-serial tasks, detailed Executable Test Matrix status, system-level acceptance checks, independent checker score/findings, automation readiness result, blockers, and the `dev-flow-state.md` path.
+Emit and persist `task_orchestration_ready` with: task-orchestration path, task count, batch count, DAG/cycle status, parallel-safety status, forced-serial tasks, detailed Executable Test Matrix status, system-level acceptance checks, `independent_checker_scores`, `independent_checker_count`, checker findings, automation readiness result, blockers, and the `dev-flow-state.md` path.

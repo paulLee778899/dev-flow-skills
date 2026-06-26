@@ -71,7 +71,7 @@ Emits `routing_decided` at the start of every governed or lightweight flow. Full
 ## Hard Rules
 
 - Do not force the old four-doc path; every implementation path uses OpenSpec/opsx artifacts as the documentation baseline.
-- Do not carry or load loop baseline templates from `dev-flow-master`; four-document baseline templates belong only to `dev-flow-loop/assets/baseline-templates/`.
+- Do not carry or load loop baseline templates from `dev-flow-master`; loop baseline templates belong only to `dev-flow-loop/assets/baseline-templates/`.
 - Do not regenerate full loop requirements/design/test docs inside a phase-level dev-flow handoff; reference the loop baseline and create only the phase artifacts needed for implementation.
 - Do not let code/config/test/user-visible changes end as chat-only output or a handwritten local note.
 - If opsx/OpenSpec is unavailable, ask the user to initialize/install it or explicitly exit dev-flow; direct changes without artifacts are not a dev-flow delivery path.

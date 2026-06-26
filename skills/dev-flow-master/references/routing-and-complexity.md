@@ -43,7 +43,7 @@ Required loading rule: before stage-specific work, load the skill that owns that
 This mode applies only when all evidence exists:
 
 - `loop_baseline_ready.baseline_status: user_confirmed`
-- confirmed requirements, high-level design, detailed design, and test plan (`test-plan.md`) paths
+- confirmed requirements, high-level design, detailed design, test plan (`test-plan.md`), and test case workbook (`test-cases.xlsx`) paths
 - Loop Phase DAG node for the current phase
 - `loop_envelope_ready` allows `auto_continue_scope: within_confirmed_baseline` and `dev_flow_phase_handoff`
 - the phase objective is inside the confirmed baseline
@@ -51,7 +51,7 @@ This mode applies only when all evidence exists:
 In this mode:
 
 - dev-flow is the phase executor, not the loop controller.
-- Preserve the loop ID, loop-only baseline artifact paths, phase ID, and envelope limits in `intent_decided` / `routing_decided`.
+- Preserve the loop ID, all five loop-only baseline artifact paths including `test-cases.xlsx`, phase ID, and envelope limits in `intent_decided` / `routing_decided`.
 - Do not recreate the full loop-only baseline artifacts or ask the user to re-confirm the same global requirements.
 - Use phase-level OpenSpec/opsx artifacts for phase requirements/tasks/spec deltas and implementation evidence.
 - Use `dev-flow-planning` to create the phase-internal task DAG, detailed Executable Test Matrix, and system-level checks.

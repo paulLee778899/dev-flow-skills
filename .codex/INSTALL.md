@@ -9,7 +9,7 @@ Codex discovers skills and commands through native discovery directories:
 
 This package includes a Codex plugin manifest at `.codex-plugin/plugin.json`, a top-level `skills/` directory for Codex-compatible skill discovery, and root command files for `/dev-flow`, `/dev-flow-cr`, `/dev-flow-loop`, `/dev-flow-triage`, and `/dev-flow-scheduler`.
 
-The four loop-only baseline templates are bundled under `skills/dev-flow-loop/assets/baseline-templates/` as `requirements.md`, `high-level-design.md`, `detailed-design.md`, and `test-plan.md`. `dev-flow-master/templates/` no longer exists and `dev-flow doctor-codex` checks this placement.
+The loop-only baseline templates are bundled under `skills/dev-flow-loop/assets/baseline-templates/` as `requirements.md`, `high-level-design.md`, `detailed-design.md`, `test-plan.md`, and `test-cases.xlsx`. `dev-flow-master/templates/` no longer exists and `dev-flow doctor-codex` checks this placement.
 
 Codex plugin commands are discovered from a plugin-root `commands/` directory; they are not declared with a `commands` field in `.codex-plugin/plugin.json`. This matches the official Codex plugin examples and the Superpowers plugin structure.
 

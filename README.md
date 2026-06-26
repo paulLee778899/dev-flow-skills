@@ -153,15 +153,15 @@ Agent:
 
 Loop Engineering is an outer control plane, not a `/dev-flow` phase.
 
-- `/dev-flow-loop <goal>` preserves a goal across multiple dev-flow phases or repair rounds. It first gets Baseline Docs Gate approval for loop-only baseline artifacts: requirements, high-level design, detailed design, and test plan (`test-plan.md`) after independent checker score >= 95. These are outer-loop control artifacts, not `/dev-flow` implementation documents. Then it gets Execution Envelope Gate approval for the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries. Only after both gates pass does it hand phases to dev-flow inside the approved envelope.
+- `/dev-flow-loop <goal>` preserves a goal across multiple dev-flow phases or repair rounds. It first gets Baseline Docs Gate approval for loop-only baseline artifacts: requirements, high-level design, detailed design, test plan (`test-plan.md`), and test case workbook (`test-cases.xlsx`) after at least 2 independent checker subagents record `independent_checker_scores`, `independent_checker_count`, and all scores are >= 95. These are outer-loop control artifacts, not `/dev-flow` implementation documents. Then it gets Execution Envelope Gate approval for the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries. Only after both gates pass does it hand phases to dev-flow inside the approved envelope.
 - `/dev-flow-triage` scans available evidence and builds a read-only Candidate Inbox.
 - `/dev-flow-scheduler` creates, updates, views, pauses, resumes, or deletes approved cron/heartbeat automations; it does not scan candidates or design loop logic.
 - Triage never writes code, commit, push, open PRs, create worktrees, mutate trackers, create schedulers, run `/dev-flow`, or run `/dev-flow-cr` automatically.
 - A confirmed delivery loop may auto-continue within baseline by handing phase-level work to dev-flow; phase implementation still uses OpenSpec/opsx artifacts, task orchestration, TDD per task via superpowers when available, acceptance evidence, and `phase_eval` checkpoints. `phase_eval` is not `/dev-flow-cr` and must not emit `cr_report_ready`.
 - Loop-owned artifacts live in `Docs/<topic>/loop/` or `docs/<topic>/loop/`. Phase OpenSpec/opsx originals stay in `openspec/changes/<change-id>/` or the project's standard OpenSpec/opsx location. Do not move or copy OpenSpec/opsx originals into the loop artifact directory; record phase mappings in `phase-artifacts.md` or `opsx-index.md`.
-- Loop `phase_eval threshold: 95`; auto-continue requires independent checker score >= 95 and no P0/P1 finding.
+- Loop `phase_eval threshold: 95`; auto-continue requires at least 2 independent checker subagents, `phase_eval_result.independent_checker_scores`, `phase_eval_result.independent_checker_count`, all phase_eval checker scores >= 95, and no P0/P1 finding.
 - Freezing the initial baseline, approving the Loop Phase DAG, and enabling `within_confirmed_baseline` require explicit user approval; exceeding baseline, budget, retry, stop-condition, or side-effect boundaries requires stopping and asking the user.
-- Machine-checkable loop terms: `loop_baseline_ready`, `independent checker score`, `quality_threshold: 95`, `Baseline Docs Gate`, `Execution Envelope Gate`, `within_confirmed_baseline`, `phase-level OpenSpec/opsx`, and default max phase repair rounds of 3.
+- Machine-checkable loop terms: `loop_baseline_ready`, `independent_checker_scores`, `independent_checker_count`, `quality_threshold: 95`, `Baseline Docs Gate`, `Execution Envelope Gate`, `within_confirmed_baseline`, `phase-level OpenSpec/opsx`, and default max phase repair rounds of 3.
 - If a candidate should be implemented or reviewed, the agent asks a concrete handoff question. After the user explicitly confirms a specific candidate, the agent may enter the equivalent `/dev-flow` or `/dev-flow-cr` owner flow without requiring another slash command.
 - Recurring repo scans should use read-only Candidate Inbox prompts; automatic fixes and full code review stay off by default.
 
@@ -187,6 +187,7 @@ For `/dev-flow-loop` delivery loops only, loop baseline artifacts may include:
 - `Docs/<topic>/loop/high-level-design.md`
 - `Docs/<topic>/loop/detailed-design.md`
 - `Docs/<topic>/loop/test-plan.md`
+- `Docs/<topic>/loop/test-cases.xlsx`
 - `Docs/<topic>/loop/loop-phase-dag.md`
 - `Docs/<topic>/loop/loop-envelope.md`
 - `Docs/<topic>/loop/loop-state.md`
@@ -203,6 +204,7 @@ Docs/<topic>/
     high-level-design.md
     detailed-design.md
     test-plan.md
+    test-cases.xlsx
     loop-phase-dag.md
     loop-envelope.md
     loop-state.md
@@ -223,7 +225,7 @@ Core skills use progressive disclosure:
 
 - `SKILL.md` keeps triggers, ownership, hard rules, and the shortest safe route.
 - `references/` holds detailed contracts, signal tables, task schemas, recovery rules, and format examples that are loaded only when needed.
-- `assets/baseline-templates/` under `dev-flow-loop` holds the four loop-only baseline templates: requirements, high-level design, detailed design, and test plan. `/dev-flow` implementation planning does not load or require these templates.
+- `assets/baseline-templates/` under `dev-flow-loop` holds loop-only baseline templates for requirements, high-level design, detailed design, test plan, and the execution-level test case workbook. `/dev-flow` implementation planning does not load or require these templates.
 
 This keeps frequently loaded skills small while preserving the full governance contract.
 

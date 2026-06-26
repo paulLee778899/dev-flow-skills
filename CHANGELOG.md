@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.1.18] - 2026-06-26
+
+### Added
+- Add `test-cases.xlsx` as the loop-owned execution-level test case workbook, including per-category sheets, resource constraint tests, summary formulas, and separate not-run/skipped counts.
+- Add doctor checks for stale single-checker score schemas so gate contracts require checker score arrays and checker counts.
+
+### Changed
+- Extend loop-only baseline artifacts from four Markdown documents to requirements, high-level design, detailed design, test plan, and `test-cases.xlsx`.
+- Require at least two independent checker subagents for loop baseline review, phase evaluation, OpenSpec baseline review, task orchestration review, and acceptance readiness.
+- Align `phase_eval_result`, `loop_eval_result`, `openspec_artifact_ready`, `task_orchestration_ready`, and `acceptance_ready` with `independent_checker_scores` plus `independent_checker_count`.
+- Clarify that `test-plan.md` carries strategy, traceability, and representative examples while complete executable cases live in `test-cases.xlsx`.
+
 ## [0.1.17] - 2026-06-25
 
 ### Added

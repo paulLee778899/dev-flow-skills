@@ -9,7 +9,7 @@
 - [Loop Baseline Mode](#loop-baseline-mode)
 - [Review Mode](#review-mode)
 - [Artifact Sufficiency Gate](#artifact-sufficiency-gate)
-- [Independent Checker Review Score](#independent-checker-review-score)
+- [Independent Checker Review Scores](#independent-checker-review-scores)
 - [Diagram Governance](#diagram-governance)
 - [Revision Loop](#revision-loop)
 - [OpenSpec Baseline Signal](#openspec-baseline-signal)
@@ -30,7 +30,7 @@ Expected baseline evidence:
 
 Use `/opsx:ff <change>` to create or refresh artifacts when starting a new change, `/opsx:continue` when resuming a change, `/opsx:apply <change>` for implementation, and `/opsx:verify <change>` for verification evidence. If OpenSpec/opsx is missing, stop and ask the user to initialize/install it or explicitly exit dev-flow.
 
-Do not overwrite unrelated existing OpenSpec artifacts. Do not create loop-only baseline documents here; the four-document baseline belongs to `dev-flow-loop/assets/baseline-templates/` and is used only before loop execution is approved.
+Do not overwrite unrelated existing OpenSpec artifacts. Do not create loop-only baseline artifacts here; the loop baseline artifact set belongs to `dev-flow-loop/assets/baseline-templates/` and is used only before loop execution is approved.
 
 ### Canonical Workspace
 
@@ -76,7 +76,7 @@ When converting approved requirements into implementation tasks, use the task-de
 
 When invoked from `dev-flow-loop` with a confirmed loop baseline:
 
-- The loop-owned requirements, high-level design, detailed design, and test plan (`test-plan.md`) are the upstream loop source of truth.
+- The loop-owned requirements, high-level design, detailed design, test plan (`test-plan.md`), and test case workbook (`test-cases.xlsx`) are the upstream loop source of truth.
 - The loop artifact directory is normally `Docs/<topic>/loop/` or `docs/<topic>/loop/`.
 - Keep OpenSpec/opsx originals in `openspec/changes/<change-id>/` or the project's standard OpenSpec/opsx location; do not move or copy them into the loop artifact directory.
 - Use the loop's `phase-artifacts.md` or `opsx-index.md` only as an index that maps phase IDs to OpenSpec/opsx change IDs, canonical paths, status, verification evidence, and `phase_eval_result`.
@@ -84,7 +84,7 @@ When invoked from `dev-flow-loop` with a confirmed loop baseline:
 - Do not regenerate the full loop-only baseline artifacts inside phase-level dev-flow.
 - Create phase-level OpenSpec/opsx artifacts that slice the baseline into the current phase's spec/tasks.
 - Create or update the phase-internal `task-orchestration.md` and Executable Test Matrix for implementation.
-- Record the loop ID, baseline doc paths, Loop Phase DAG node, envelope limits, and phase artifact index path in `dev-flow-state.md`.
+- Record the loop ID, all five baseline artifact paths including `test-cases.xlsx`, Loop Phase DAG node, envelope limits, and phase artifact index path in `dev-flow-state.md`.
 - Return to the loop/user if the phase needs to change requirements, non-goals, acceptance, API/protocol/data/security/release boundaries, or the overall test strategy.
 
 This keeps loop and dev-flow decoupled: loop owns the target and cross-phase DAG; dev-flow owns phase execution artifacts.
@@ -118,9 +118,9 @@ If this fails, mark artifacts `not-ready` and revise before OpenSpec Baseline Ga
 
 If the same artifact set fails the Artifact Sufficiency Gate more than **3 times** without satisfactory revision, emit a hard-stop and ask the user whether to: (a) narrow the scope to remove the unresolvable section, (b) mark the section as a known TBD with an explicit deferral, or (c) pause. Do not allow unbounded revision loops.
 
-### Independent Checker Review Score
+### Independent Checker Review Scores
 
-Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn an independent checker subagent to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
+Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn at least 2 independent checker subagents concurrently to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
 
 Score dimensions:
 
@@ -131,9 +131,9 @@ Score dimensions:
 - test plan coverage, including every likely behavior, edge case, failure mode, TDD entry point, and final system-level verification
 - no unresolved TBD/TODO/contradiction unless explicitly accepted as risk
 
-For loop-only baseline artifacts and medium/heavy OpenSpec baseline artifacts, score must be at least 95 before asking the user to approve execution. If the score is below 95, revise the artifacts and run another independent checker pass. Stop after 3 checker revision rounds and ask the user to narrow scope, accept a known risk, or pause.
+For loop-only baseline artifacts and medium/heavy OpenSpec baseline artifacts, all checker scores must be at least 95 before asking the user to approve execution. If any score is below 95, revise the artifacts and run another independent checker pass. Stop after 3 checker revision rounds and ask the user to narrow scope, accept a known risk, or pause.
 
-Persist the checker score, checker identity/model when available, raw artifact scope, findings, and revision notes in `dev-flow-state.md` for normal governed planning, or in the loop baseline artifact for loop-owned docs.
+Persist checker scores, checker count, checker identities/models when available, raw artifact scope, findings, and revision notes in `dev-flow-state.md` for normal governed planning, or in the loop baseline artifact for loop-owned docs.
 
 ### Diagram Governance
 
@@ -149,4 +149,4 @@ For formal product/system OpenSpec artifacts, diagrams are governed assets. Use 
 
 ### OpenSpec Baseline Signal
 
-Emit and persist `openspec_artifact_ready` with: OpenSpec change path, generated artifact list, artifact variant, review mode, independent checker score, checker findings path or summary, unresolved/accepted risks, OpenSpec Baseline Gate readiness, and the `dev-flow-state.md` path. In loop-authorized phase mode, also include the loop artifact directory and `phase-artifacts.md` or `opsx-index.md` path, while keeping the canonical OpenSpec change path outside the loop directory.
+Emit and persist `openspec_artifact_ready` with: OpenSpec change path, generated artifact list, artifact variant, review mode, `independent_checker_scores`, `independent_checker_count`, checker findings path or summary, unresolved/accepted risks, OpenSpec Baseline Gate readiness, and the `dev-flow-state.md` path. In loop-authorized phase mode, also include the loop artifact directory, all five loop baseline artifact paths including `test-cases.xlsx`, and `phase-artifacts.md` or `opsx-index.md` path, while keeping the canonical OpenSpec change path outside the loop directory.

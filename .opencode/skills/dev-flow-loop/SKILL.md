@@ -32,18 +32,25 @@ All user-facing replies in dev-flow are in Chinese.
 
 1. Establish loop scope: workflow design, repository triage, completed-run review, automation proposal, dispatch handoff, or delivery loop.
 2. For delivery loops, discuss requirements, blockers, and brainstorming options; get user direction confirmation before writing loop-only baseline artifacts.
-3. Produce loop-only baseline artifacts: requirements, high-level design, detailed design, and test plan (`test-plan.md`). These are not `/dev-flow` implementation documents. Reuse `assets/baseline-templates/` when a concrete baseline document shape is needed. Run independent checker subagent review and auto-revise until checker score is at least 95 or a blocker is reached, then get Baseline Docs Gate approval.
+3. Produce loop-only baseline artifacts (not `/dev-flow` implementation documents); reuse `assets/baseline-templates/`:
+   - `requirements.md`, `high-level-design.md`, `detailed-design.md`, `test-plan.md`, `test-cases.xlsx`
+   - Every document must include all required Mermaid diagrams filled with real project-specific names; unfilled placeholders are a checker-gate blocker; see `references/control-plane.md §Delivery Loop Lifecycle step 3` for the mandatory diagram list
+   - After producing the artifact set, spawn **at least 2** independent checker subagents concurrently
+   - Each checker independently scores the full artifact set 0–100 against `references/control-plane.md §Baseline Document Quality Checklist` without sharing findings before scoring
+   - Record `loop_baseline_ready.independent_checker_scores` and `loop_baseline_ready.independent_checker_count`
+   - Consolidate all findings and auto-revise until **all checker scores ≥ 95** or a blocker is reached
+   - Then get Baseline Docs Gate approval
 4. Define the Loop Phase DAG, load `dev-flow-loop-envelope`, and get Execution Envelope Gate approval for the DAG, `auto_continue_scope`, and `dev_flow_phase_handoff`.
 5. Execute each phase by handing to dev-flow in loop-authorized phase mode: phase-level OpenSpec/opsx, phase-internal task DAG, detailed test matrix, TDD per task via superpowers, system-level acceptance evidence.
 6. Record phase OpenSpec/opsx paths and status in `phase-artifacts.md` or `opsx-index.md`; do not duplicate the OpenSpec change directory under loop artifacts.
-7. Run independent checker subagent `phase_eval` after each phase or repair round; do not call `/dev-flow-cr` or emit `cr_report_ready` unless the user explicitly runs `/dev-flow-cr`.
+7. Run **at least 2** independent checker subagents concurrently for `phase_eval` after each phase or repair round; each checker independently scores phase artifacts from 0–100; record `phase_eval_result.independent_checker_scores` and `phase_eval_result.independent_checker_count`; a phase passes only when all checker scores are ≥ 95 with no P0/P1 finding; do not call `/dev-flow-cr` or emit `cr_report_ready` unless the user explicitly runs `/dev-flow-cr`.
 8. Load `dev-flow-loop-triage` when observing repo/CI/diff/issues/OpenSpec/dev-flow artifacts to produce a candidate inbox.
 9. Use maker-checker separation before freezing baseline, approving an envelope, or recommending handoff from triage.
 
 ## References
 
 - `references/control-plane.md`: Load before reviewing loop design, preparing loop-only baseline artifacts, creating a Loop Phase DAG, proposing automation, writing loop artifacts, or emitting loop signals.
-- `assets/baseline-templates/`: Reusable loop-only baseline document templates for requirements, high-level design, detailed design, and test plan. These assets belong to Loop Engineering, not `/dev-flow` implementation planning.
+- `assets/baseline-templates/`: Reusable loop-only baseline templates for requirements, high-level design, detailed design, test plan, and the execution-level test case workbook. These assets belong to Loop Engineering, not `/dev-flow` implementation planning.
 
 ## Required Signals
 

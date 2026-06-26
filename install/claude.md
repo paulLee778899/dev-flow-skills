@@ -48,7 +48,7 @@ dev-flow doctor-claude
     tk8620-firmware-workflow/
 ```
 
-The four loop-only baseline templates are installed under `~/.claude/skills/dev-flow-loop/assets/baseline-templates/` as `requirements.md`, `high-level-design.md`, `detailed-design.md`, and `test-plan.md`. `dev-flow-master/templates/` no longer exists and `dev-flow doctor-claude` checks this placement.
+The loop-only baseline templates are installed under `~/.claude/skills/dev-flow-loop/assets/baseline-templates/` as `requirements.md`, `high-level-design.md`, `detailed-design.md`, `test-plan.md`, and `test-cases.xlsx`. `dev-flow-master/templates/` no longer exists and `dev-flow doctor-claude` checks this placement.
 
 ## Command
 

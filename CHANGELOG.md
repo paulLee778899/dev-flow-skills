@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.20] - 2026-06-26
+
+### Added
+- Add checker review gate for Loop Phase DAG and Execution Envelope: spawn a checker subagent after producing the DAG and Envelope, score against the new §DAG and Envelope Quality Checklist (DAG-01..09, ENV-01..09), record `dag_envelope_checker_score` in `loop_control_ready`, and auto-revise until score ≥ 95 before Execution Envelope Gate.
+- Add §DAG and Envelope Quality Checklist section to `control-plane.md` with 9 DAG criteria and 9 Envelope criteria.
+- Add phase execution planning artifact pre-gate: before starting implementation, verify `openspec_artifact_ready.checker_score ≥ 95` and `task_orchestration_ready.checker_score ≥ 95` from dev-flow-planning; if either is absent or below threshold, halt and wait.
+- Add two new -15 scoring deductions: skipping DAG/Envelope checker review or starting phase execution without verified planning artifact checker scores.
+- Add `dag_envelope_checker_score`, `DAG and Envelope Quality Checklist`, `openspec_artifact_ready.checker_score`, `task_orchestration_ready.checker_score` to doctor required phrase lists for loop governance.
+
 ## [0.1.19] - 2026-06-26
 
 ### Changed

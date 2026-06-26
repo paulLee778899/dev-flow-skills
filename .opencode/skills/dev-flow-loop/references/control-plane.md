@@ -112,10 +112,18 @@ openspec/
    - Auto-revise against all findings
    - Repeat until checker score ≥ 95 or a blocker is found
 5. Present final loop baseline artifacts and ask for Baseline Docs Gate approval. Do not execute implementation before this approval.
-6. Write the Loop Phase DAG and envelope proposal.
-7. Present the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries for Execution Envelope Gate approval.
-8. Freeze the baseline only after Baseline Docs Gate and Execution Envelope Gate are both approved.
-9. For each ready phase, hand off to dev-flow in loop-authorized phase mode:
+6. Write the Loop Phase DAG and Execution Envelope proposal:
+   - Loop Phase DAG: all phase nodes with unique IDs (P-01, P-02 …), explicit dependency edges, entry/exit criteria per phase, repair policy (max rounds + fallback), parallel-phase independence assertions
+   - Execution Envelope: budget ceiling, stop conditions, side-effect boundaries, `auto_continue_scope`, `max_phase_repair_rounds`, `max_full_loop_passes`, `forbidden_side_effects`
+7. Run checker review on DAG and Envelope:
+   - Spawn a checker subagent to score the Loop Phase DAG and Execution Envelope 0–100 against `§DAG and Envelope Quality Checklist`
+   - Record the score in `loop_control_ready.dag_envelope_checker_score`; the gate condition is checker score ≥ 95
+   - Auto-revise against all findings
+   - Repeat until checker score ≥ 95 or a blocker is found
+8. Present the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries — together with the DAG/Envelope checker score — for Execution Envelope Gate approval.
+9. Freeze the baseline only after Baseline Docs Gate and Execution Envelope Gate are both approved.
+10. For each ready phase, hand off to dev-flow in loop-authorized phase mode:
+   - **Before starting implementation**, verify that `openspec_artifact_ready.checker_score ≥ 95` and `task_orchestration_ready.checker_score ≥ 95` are recorded from dev-flow-planning; if either is absent or below threshold, wait for the planning checker to complete before proceeding
    - preserve the loop goal and baseline ID
    - create phase-level OpenSpec/opsx spec/tasks instead of rewriting the loop-only baseline artifacts
    - keep phase-level OpenSpec/opsx originals in `openspec/changes/<change-id>/` or the project's standard OpenSpec/opsx location
@@ -124,12 +132,12 @@ openspec/
    - create detailed test coverage for normal, edge, failure, integration, and system-level checks
    - require TDD per implementation task via `superpowers:test-driven-development` when available
    - collect acceptance and system-level evidence
-10. Run checker `phase_eval` after each phase or repair round using a checker subagent; the checker scores phase artifacts from 0–100; record `phase_eval_result.checker_score`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
-11. Decide:
+11. Run checker `phase_eval` after each phase or repair round using a checker subagent; the checker scores phase artifacts from 0–100; record `phase_eval_result.checker_score`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
+12. Decide:
    - continue to next phase only when `phase_eval` checker score ≥ 95, no P0/P1 finding exists, and dependencies are ready
    - run a repair round when issues are inside baseline and budget remains
    - stop and ask the user when a stop condition is met
-12. Emit final loop report with phase outcomes, evidence, scores, residual risks, and recommended next action.
+13. Emit final loop report with phase outcomes, evidence, scores, residual risks, and recommended next action.
 
 ## Baseline Document Quality Checklist
 
@@ -258,6 +266,38 @@ Each phase node must include:
 
 Parallel phase execution is allowed only when all parallel phase nodes have no dependency path between them, no shared writer conflict, and the envelope permits concurrent agents. If only some phase nodes are independent, only those nodes may be considered for parallel sub-waves; dependent phases remain serial.
 
+## DAG and Envelope Quality Checklist
+
+A checker subagent scores the Loop Phase DAG and Execution Envelope using this checklist. Score = (YES items / applicable items) × 100. Items marked "If applicable" are excluded from the denominator when not relevant. Auto-revise against all findings and repeat until checker score ≥ 95.
+
+### Loop Phase DAG
+
+| ID | Item | Scope |
+|---|---|---|
+| DAG-01 | Every phase node has a unique ID (P-01, P-02 …) and a clear name | Always |
+| DAG-02 | All dependency edges are explicit; no implicit ordering assumed | Always |
+| DAG-03 | Each phase has defined entry criteria (what must be true before it starts) | Always |
+| DAG-04 | Each phase has defined exit criteria (what must be true before it is considered done) | Always |
+| DAG-05 | Repair policy is defined: max repair rounds per phase and fallback action (stop / escalate) | Always |
+| DAG-06 | No cyclic dependencies exist in the DAG | Always |
+| DAG-07 | Phases intended to run in parallel are explicitly marked; their independence (no shared writer, no dependency path) is stated | If parallel phases present |
+| DAG-08 | Each phase names the baseline artifacts and acceptance criteria it is bound by | Always |
+| DAG-09 | The DAG covers all scope items from the confirmed loop baseline; no baseline item is left without a phase | Always |
+
+### Execution Envelope
+
+| ID | Item | Scope |
+|---|---|---|
+| ENV-01 | Budget ceiling is defined (token budget, cost limit, or wall-time limit) | Always |
+| ENV-02 | Stop conditions are defined and measurable | Always |
+| ENV-03 | Side-effect boundaries are stated: what external writes, network calls, or paid operations are permitted | Always |
+| ENV-04 | `auto_continue_scope` is set to a valid value (`within_confirmed_baseline` / `ask_user` / `disabled`) | Always |
+| ENV-05 | `max_phase_repair_rounds` is defined | Always |
+| ENV-06 | `max_full_loop_passes` is defined | Always |
+| ENV-07 | `forbidden_side_effects` lists all disallowed actions (e.g. push, merge, delete, paid API calls) | Always |
+| ENV-08 | `dev_flow_phase_handoff` permission is explicitly stated (allowed / not allowed) | Always |
+| ENV-09 | Envelope is consistent with the Loop Phase DAG (phase count, IDs, and scope match) | Always |
+
 ## Auto-Continue Policy
 
 After Baseline Docs Gate and Execution Envelope Gate are both approved, the loop should auto-continue inside the confirmed baseline. It should not ask after every dev-flow phase gate that is already authorized by the baseline.
@@ -271,6 +311,7 @@ Auto-continue is allowed when all are true:
 - envelope budget, agent cap, and side-effect permissions allow continuation
 - no destructive Git/external/paid operation is needed
 - phase_eval result is pass with checker score >= 95 and no P0/P1 finding, or is repairable inside baseline for a repair round
+- `openspec_artifact_ready.checker_score >= 95` and `task_orchestration_ready.checker_score >= 95` were verified before implementation started for this phase
 
 Hard-stop and ask the user when any is true:
 
@@ -286,6 +327,8 @@ Default limits if the user did not specify them:
 - max phase repair rounds: 3 per phase
 - max full-loop passes: 2
 - checker baseline threshold: 95
+- dag_envelope checker threshold: 95
+- planning artifact checker threshold: 95
 - phase_eval threshold: 95
 
 These defaults are stated to the user and recorded; they do not need a separate question unless the user asks to change them.
@@ -296,7 +339,7 @@ These defaults are stated to the user and recorded; they do not need a separate 
 |---|---|---|
 | `goal` | The single outcome the loop is trying to improve or detect. | Keep it one sentence and measurable enough to evaluate. |
 | `baseline` | User-confirmed requirements/design/test source of truth for the outer loop. | Loop-only baseline artifacts, checker score >= 95, user confirmation. |
-| `phase_dag` | Cross-phase dependency graph. | Records phase nodes, dependencies, entry/exit criteria, eval gates, repair policy. |
+| `phase_dag` | Cross-phase dependency graph. | Records phase nodes, dependencies, entry/exit criteria, eval gates, repair policy. Checker score ≥ 95 required before Execution Envelope Gate. |
 | `trigger` | How the loop starts: manual request, heartbeat, schedule, external event, or background monitor. | Treat every non-manual trigger as envelope-required and approval-required. |
 | `trace` | The evidence trail of what was inspected, what was recommended, and what was deliberately not done. | Record artifacts, commands, unavailable sources, and side effects. |
 | `eval` | The checkpoint that decides whether the loop result is good enough. | Use a checker subagent for score, candidate confidence, missing-evidence limits, and boundary checks. |
@@ -376,6 +419,7 @@ loop_control_ready:
   recommended_next_route: none | ask_user | /dev-flow | /dev-flow-cr | /dev-flow-scheduler | manual_action | external_tracker
   side_effects_performed: none
   checker_score: <integer 0–100 or none>
+  dag_envelope_checker_score: <integer 0–100 or none>
   checker_gate_result: pass | blocked | not_applicable
   unresolved_risks: [list or none]
   review_limits: [list or none]
@@ -420,6 +464,8 @@ Start at 100 and subtract:
 - 20: internal `phase_eval` is confused with `/dev-flow-cr` or emits `cr_report_ready`.
 - 15: baseline artifacts skip the checker subagent review, or checker score < 95, or auto-revision evidence is missing.
 - 15: delivery loop lacks a Loop Phase DAG or confuses it with phase-internal `task-orchestration.md`.
+- 15: Loop Phase DAG or Execution Envelope skips checker review, or `dag_envelope_checker_score` < 95 before Execution Envelope Gate.
+- 15: phase execution starts without verified `openspec_artifact_ready.checker_score ≥ 95` and `task_orchestration_ready.checker_score ≥ 95` from dev-flow-planning.
 - 15: dev-flow phase handoff does not require phase-level OpenSpec/opsx artifacts.
 - 15: OpenSpec/opsx originals are moved or copied into `Docs/<topic>/loop/` instead of being linked from `phase-artifacts.md` or `opsx-index.md`.
 - 15: implementation tasks do not require TDD per task via superpowers or equivalent fallback.

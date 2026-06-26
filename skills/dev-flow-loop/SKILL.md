@@ -40,8 +40,15 @@ All user-facing replies in dev-flow are in Chinese.
    - Record the score in `loop_baseline_ready.checker_score`
    - Auto-revise against all findings until checker score ≥ 95 or a blocker is reached
    - Then get Baseline Docs Gate approval
-4. Define the Loop Phase DAG, load `dev-flow-loop-envelope`, and get Execution Envelope Gate approval for the DAG, `auto_continue_scope`, and `dev_flow_phase_handoff`.
-5. Execute each phase by handing to dev-flow in loop-authorized phase mode: phase-level OpenSpec/opsx, phase-internal task DAG, detailed test matrix, TDD per task via superpowers, system-level acceptance evidence.
+4. Write the Loop Phase DAG and load `dev-flow-loop-envelope`:
+   - Produce the Loop Phase DAG (phase nodes, dependencies, entry/exit criteria, repair policy) and the Execution Envelope (budget, stop conditions, side-effect boundaries, `auto_continue_scope`)
+   - Spawn a checker subagent to score the DAG and Envelope 0–100 against `references/control-plane.md §DAG and Envelope Quality Checklist`
+   - Record the score in `loop_control_ready.dag_envelope_checker_score`
+   - Auto-revise against all findings until checker score ≥ 95 or a blocker is reached
+   - Then get Execution Envelope Gate approval for the DAG, `auto_continue_scope`, and `dev_flow_phase_handoff`
+5. Execute each phase by handing to dev-flow in loop-authorized phase mode:
+   - **Before starting execution**, verify `openspec_artifact_ready.checker_score ≥ 95` and `task_orchestration_ready.checker_score ≥ 95` are recorded from dev-flow-planning; do not start implementation if either score is absent or below threshold
+   - phase-level OpenSpec/opsx, phase-internal task DAG, detailed test matrix, TDD per task via superpowers, system-level acceptance evidence
 6. Record phase OpenSpec/opsx paths and status in `phase-artifacts.md` or `opsx-index.md`; do not duplicate the OpenSpec change directory under loop artifacts.
 7. Run a checker subagent for `phase_eval` after each phase or repair round; the checker scores phase artifacts from 0–100; record the score in `phase_eval_result.checker_score`; a phase passes only when checker score ≥ 95 with no P0/P1 finding; do not call `/dev-flow-cr` or emit `cr_report_ready` unless the user explicitly runs `/dev-flow-cr`.
 8. Load `dev-flow-loop-triage` when observing repo/CI/diff/issues/OpenSpec/dev-flow artifacts to produce a candidate inbox.

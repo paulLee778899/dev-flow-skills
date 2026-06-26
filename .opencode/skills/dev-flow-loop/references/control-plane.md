@@ -34,7 +34,7 @@
 |---|---|---|
 | `dev-flow-loop` | goal retention, user-confirmed baseline, Loop Phase DAG, envelope, phase_eval/loop_eval decisions, cross-phase trace | phase implementation, phase-local task settlement, commits/pushes/PRs |
 | `dev-flow` | phase-level OpenSpec/opsx artifacts, phase task DAG, TDD implementation, acceptance evidence | redefining loop goal, replacing confirmed baseline, cross-phase stop policy |
-| `phase_eval` / `loop_eval` | independent checker quality checkpoint per phase (`phase_eval_result`) or final loop summary (`loop_eval_result`); both persisted to `loop-state.md` | independent `/dev-flow-cr`, `cr_report_ready`, implementation fixes, baseline changes |
+| `phase_eval` / `loop_eval` | checker quality checkpoint per phase (`phase_eval_result`) or final loop summary (`loop_eval_result`); both persisted to `loop-state.md` | independent `/dev-flow-cr`, `cr_report_ready`, implementation fixes, baseline changes |
 | `dev-flow-cr` | independent user-triggered CR after user request | automatic loop checkpoint, implementation fixes, baseline changes |
 | `dev-flow-scheduler` | approved cron/heartbeat automation lifecycle | loop design, triage, implementation |
 | `dev-flow-loop-triage` | candidate discovery and readable next-step recommendation | fixing candidates, running dev-flow, creating schedules |
@@ -86,7 +86,7 @@ openspec/
 ## Delivery Loop Lifecycle
 
 1. Discuss the goal, requirements, blockers, non-goals, risks, and success evidence with the user.
-2. Use brainstorming patterns when requirements or design direction are ambiguous; present options and get direction confirmation.
+2. Use brainstorming patterns when requirements or design direction are ambiguous; present options and get direction confirmation. **When discussion is complete, explicitly ask the user whether to proceed with writing the baseline documents — do not proceed to Step 3 until the user confirms in the current turn. Prior discussion, regardless of length, does not count as confirmation.**
 3. Generate loop-only baseline artifacts:
    - requirements (`requirements.md`)
    - high-level design (`high-level-design.md`)
@@ -106,12 +106,11 @@ openspec/
    - `detailed-design.md` §5.1: `stateDiagram-v2` — required if stateful behavior
    - `detailed-design.md` §5.5: `flowchart TD` failure/rollback — required if retry or rollback behavior
    - `detailed-design.md` §3.3: `sequenceDiagram` protocol lifecycle — required if protocol design
-4. Run independent checker review:
-   - Spawn **at least 2** independent checker subagents concurrently; they must not share findings before each independently scores
-   - Each checker scores the full artifact set (requirements, HLD, DDD, test-plan, test-cases.xlsx) from 0–100 against `§Baseline Document Quality Checklist`
-   - Record all scores in `loop_baseline_ready.independent_checker_scores` and checker count in `loop_baseline_ready.independent_checker_count`; the gate condition is count ≥ 2 and all scores ≥ 95
-   - Consolidate all findings across checkers; auto-revise against the full finding set
-   - Repeat until all checker scores ≥ 95 or a blocker is found
+4. Run checker review:
+   - Spawn a checker subagent to score the full artifact set (requirements, HLD, DDD, test-plan, test-cases.xlsx) from 0–100 against `§Baseline Document Quality Checklist`
+   - Record the score in `loop_baseline_ready.checker_score`; the gate condition is checker score ≥ 95
+   - Auto-revise against all findings
+   - Repeat until checker score ≥ 95 or a blocker is found
 5. Present final loop baseline artifacts and ask for Baseline Docs Gate approval. Do not execute implementation before this approval.
 6. Write the Loop Phase DAG and envelope proposal.
 7. Present the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries for Execution Envelope Gate approval.
@@ -125,18 +124,16 @@ openspec/
    - create detailed test coverage for normal, edge, failure, integration, and system-level checks
    - require TDD per implementation task via `superpowers:test-driven-development` when available
    - collect acceptance and system-level evidence
-10. Run independent checker `phase_eval` after each phase or repair round using **at least 2** independent checker subagents concurrently; each scores phase artifacts from 0–100 independently; record `phase_eval_result.independent_checker_scores` and `phase_eval_result.independent_checker_count`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
+10. Run checker `phase_eval` after each phase or repair round using a checker subagent; the checker scores phase artifacts from 0–100; record `phase_eval_result.checker_score`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
 11. Decide:
-   - continue to next phase only when **all** `phase_eval` checker scores are ≥ 95, no P0/P1 finding exists, and dependencies are ready
+   - continue to next phase only when `phase_eval` checker score ≥ 95, no P0/P1 finding exists, and dependencies are ready
    - run a repair round when issues are inside baseline and budget remains
    - stop and ask the user when a stop condition is met
 12. Emit final loop report with phase outcomes, evidence, scores, residual risks, and recommended next action.
 
 ## Baseline Document Quality Checklist
 
-Independent checker subagents score the full baseline artifact set using this checklist. Score = (YES items / applicable items) × 100, rounded to the nearest integer. Items marked "If applicable" are excluded from the denominator when the relevant design element does not exist in the project.
-
-**Checker independence rule**: spawn at least 2 checker subagents concurrently; each scores independently without sharing findings before submitting; after all checkers submit their scores and findings, consolidate all findings and auto-revise; repeat until all checker scores ≥ 95.
+A checker subagent scores the full baseline artifact set using this checklist. Score = (YES items / applicable items) × 100, rounded to the nearest integer. Items marked "If applicable" are excluded from the denominator when the relevant design element does not exist in the project. Auto-revise against all findings and repeat until checker score ≥ 95.
 
 ### requirements.md
 
@@ -273,7 +270,7 @@ Auto-continue is allowed when all are true:
 - phase work is inside baseline scope and acceptance criteria
 - envelope budget, agent cap, and side-effect permissions allow continuation
 - no destructive Git/external/paid operation is needed
-- phase_eval result is pass with at least 2 independent checker subagents, all checker scores >= 95, and no P0/P1 finding, or is repairable inside baseline for a repair round
+- phase_eval result is pass with checker score >= 95 and no P0/P1 finding, or is repairable inside baseline for a repair round
 
 Hard-stop and ask the user when any is true:
 
@@ -288,7 +285,7 @@ Default limits if the user did not specify them:
 
 - max phase repair rounds: 3 per phase
 - max full-loop passes: 2
-- independent checker baseline threshold: 95
+- checker baseline threshold: 95
 - phase_eval threshold: 95
 
 These defaults are stated to the user and recorded; they do not need a separate question unless the user asks to change them.
@@ -298,12 +295,12 @@ These defaults are stated to the user and recorded; they do not need a separate 
 | Primitive | Meaning | Requirement |
 |---|---|---|
 | `goal` | The single outcome the loop is trying to improve or detect. | Keep it one sentence and measurable enough to evaluate. |
-| `baseline` | User-confirmed requirements/design/test source of truth for the outer loop. | Loop-only baseline artifacts, at least 2 independent checker subagents, all checker scores >= 95, user confirmation. |
+| `baseline` | User-confirmed requirements/design/test source of truth for the outer loop. | Loop-only baseline artifacts, checker score >= 95, user confirmation. |
 | `phase_dag` | Cross-phase dependency graph. | Records phase nodes, dependencies, entry/exit criteria, eval gates, repair policy. |
 | `trigger` | How the loop starts: manual request, heartbeat, schedule, external event, or background monitor. | Treat every non-manual trigger as envelope-required and approval-required. |
 | `trace` | The evidence trail of what was inspected, what was recommended, and what was deliberately not done. | Record artifacts, commands, unavailable sources, and side effects. |
-| `eval` | The checkpoint that decides whether the loop result is good enough. | Use an independent checker subagent for score, candidate confidence, missing-evidence limits, and boundary checks. |
-| `phase_eval` | Independent checker checkpoint after a phase or repair round. Produces `phase_eval_result` signal (schema: `skills/dev-flow-loop/SKILL.md#Required Signals`). Persisted to `loop-state.md`. | Must not call `/dev-flow-cr`, emit `cr_report_ready`, or replace user-triggered independent CR. |
+| `eval` | The checkpoint that decides whether the loop result is good enough. | Use a checker subagent for score, candidate confidence, missing-evidence limits, and boundary checks. |
+| `phase_eval` | Checker checkpoint after a phase or repair round. Produces `phase_eval_result` signal (schema: `skills/dev-flow-loop/SKILL.md#Required Signals`). Persisted to `loop-state.md`. | Must not call `/dev-flow-cr`, emit `cr_report_ready`, or replace user-triggered independent CR. |
 | `maker-checker` | Separate proposal from review. | Use one pass to produce candidates/envelope and a separate pass to check safety before handoff. |
 | `handoff` | A user-readable next action for `/dev-flow`, `/dev-flow-cr`, `/dev-flow-scheduler`, manual action, or tracker work. | Ask a concrete confirmation question; after explicit candidate confirmation, enter the owner flow without requiring another slash command. |
 
@@ -320,8 +317,7 @@ loop_baseline_ready:
   baseline_status: draft | checker_pending | checker_reviewed | user_confirmed | blocked
   baseline_artifacts: [requirements, high_level_design, detailed_design, test_plan, test_cases_xlsx]
   loop_artifact_dir: <Docs/<topic>/loop/ or docs/<topic>/loop/>
-  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
-  independent_checker_count: <integer, minimum 2>
+  checker_score: <integer 0–100>
   quality_threshold: 95
   gate_approved_at: <ISO-8601 or none>
   phase_dag_path: <path or none>
@@ -335,8 +331,7 @@ phase_eval_result:
   phase_artifact_index: <phase-artifacts.md or opsx-index.md path>
   openspec_change_path: <openspec/changes/<change-id>/ or project standard path>
   round: <integer; 1 = first eval, 2+ = repair rounds>
-  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
-  independent_checker_count: <integer, minimum 2>
+  checker_score: <integer 0–100>
   quality_threshold: 95
   highest_finding_severity: P0 | P1 | P2 | none
   result: pass | repairable | stop
@@ -353,8 +348,7 @@ loop_eval_result:
   phases_completed: [list of phase_ids]
   phases_repaired: [list of phase_ids or none]
   phases_stopped: [list of phase_ids or none]
-  final_independent_checker_scores: [<score1>, <score2>, ...]
-  final_independent_checker_count: <integer, minimum 2>
+  final_checker_score: <minimum phase_eval checker_score across all completed phases; integer 0–100>
   highest_finding_severity: P0 | P1 | P2 | none
   result: complete | partial | stopped
   residual_risks: [list or none]
@@ -381,8 +375,7 @@ loop_control_ready:
   handoff_question: <question or none>
   recommended_next_route: none | ask_user | /dev-flow | /dev-flow-cr | /dev-flow-scheduler | manual_action | external_tracker
   side_effects_performed: none
-  independent_checker_scores: [<score1>, <score2>, ...] | none
-  independent_checker_count: <integer or 0>
+  checker_score: <integer 0–100 or none>
   checker_gate_result: pass | blocked | not_applicable
   unresolved_risks: [list or none]
   review_limits: [list or none]
@@ -425,13 +418,13 @@ Start at 100 and subtract:
 - 20: delivery loop lacks user-confirmed loop-only baseline artifacts before implementation.
 - 20: phase handoff starts before Execution Envelope Gate approves Loop Phase DAG, `auto_continue_scope`, and `dev_flow_phase_handoff`.
 - 20: internal `phase_eval` is confused with `/dev-flow-cr` or emits `cr_report_ready`.
-- 15: baseline artifacts use fewer than 2 independent checker subagents, or not all checker scores ≥ 95, or auto-revision evidence is missing.
+- 15: baseline artifacts skip the checker subagent review, or checker score < 95, or auto-revision evidence is missing.
 - 15: delivery loop lacks a Loop Phase DAG or confuses it with phase-internal `task-orchestration.md`.
 - 15: dev-flow phase handoff does not require phase-level OpenSpec/opsx artifacts.
 - 15: OpenSpec/opsx originals are moved or copied into `Docs/<topic>/loop/` instead of being linked from `phase-artifacts.md` or `opsx-index.md`.
 - 15: implementation tasks do not require TDD per task via superpowers or equivalent fallback.
-- 15: phase_eval uses fewer than 2 independent checker subagents, or is done only by the main agent.
-- 10: independent checker subagents share findings before independently scoring, violating maker-checker separation.
+- 15: phase_eval skips the checker subagent, or is scored only by the main agent without a separate checker.
+- 15: the checker subagent that scores baseline or phase artifacts is the same agent instance that produced those artifacts.
 - 15: no envelope for recurring, scheduled, background, or persistent loops.
 - 15: loop creates, updates, pauses, resumes, or deletes schedulers instead of routing to `dev-flow-scheduler`.
 - 10: recommendations are not backed by artifacts.
@@ -453,7 +446,7 @@ Scores below 95 require revision before running a delivery loop or recommending 
 - Trigger:
 - Evidence:
 - Trace/eval evidence:
-- Independent checker scores: [score1, score2, ...]
+- Checker score: <integer>
 - Side effects performed: none
 - Handoff question:
 - Recommended next route:

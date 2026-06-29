@@ -139,8 +139,8 @@ If a signal is missing, stale, or contradicted by actual Git/filesystem/task sta
 | OpenSpec Baseline Gate | Main agent + checker + user | Yes, a checker required | Mandatory explicit approval |
 | Task orchestration | Main agent + checker | Yes, a checker required | `dev-flow-planning`; write DAG/test matrix |
 | Phase 2 gate | Main agent + user | No | Mandatory explicit approval; resolve Git modes via `dev-flow-git` |
-| Phase 3 execution | Main agent + task agents | Yes | `dev-flow-execution`; task agents implement only assigned scope |
-| Per-task review | Main agent + reviewer sub-agent | Yes | `dev-flow-execution`; reviewer dispatched after implementing sub-agent `final_success` in non-patch modes; see `task-settlement-and-modes.md § Per-Task Reviewer Protocol` |
+| Phase 3 execution | Main agent + task agents | Required | `dev-flow-execution`; main agent coordinates only; all implementation dispatched to task sub-agents |
+| Per-task review | Main agent + reviewer sub-agent | Required | `dev-flow-execution`; reviewer dispatched after every implementing sub-agent in all three execution modes; see `task-settlement-and-modes.md § Per-Task Reviewer Protocol` |
 | Git operations | Main agent / task agent within approved mode | Yes within task scope | `dev-flow-git`; no unauthorized side effects |
 | Acceptance | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` |
 | Completion gate | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` evidence + checker scores/count + master final decision |

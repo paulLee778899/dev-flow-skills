@@ -17,11 +17,11 @@ All user-facing replies in dev-flow are in Chinese.
 
 ## Core Contract
 
-Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. Maintain Runtime Orchestration State, dispatch tasks under Git/writer limits, verify done signals, update progress, and move to acceptance when settled.
+Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. The main agent is coordinator only; all implementation tasks must be dispatched to sub-agents. Maintain Runtime Orchestration State, dispatch tasks under Git/writer limits, verify done signals, update progress, and move to acceptance when settled.
 
 Every implementation task, lightweight or heavyweight, must use `superpowers:test-driven-development` when available, or the local equivalent: failing test first, observed RED, minimal GREEN, refactor after green, and recorded evidence. This is a per-task execution rule, not a loop-layer responsibility.
 
-When task sub-agents are dispatched (worktree-parallel or shared-working-tree serial mode), after each implementing sub-agent reports `final_success`, dispatch a reviewer sub-agent to independently verify the task diff and evidence before the task is settled. See `references/task-settlement-and-modes.md § Per-Task Reviewer Protocol`.
+After each implementing sub-agent reports `final_success` (or after the main agent applies and verifies a patch in patch mode), dispatch a reviewer sub-agent to independently verify the task diff and evidence before the task is settled. See `references/task-settlement-and-modes.md § Per-Task Reviewer Protocol`.
 
 ## References
 

@@ -261,6 +261,8 @@ const governanceSemanticChecks = [
       'Per-Task Reviewer Protocol',
       'task_reviewer_verdict',
       'reviewer_blocked',
+      'coordinator only',
+      'All implementation tasks in Phase 3 must be dispatched to sub-agents',
     ],
   },
   {

@@ -70,7 +70,7 @@ Main-agent apply loop:
 7. Update Runtime Orchestration State and `progress.md` after each applied patch.
 8. Continue applying the next patch until the sub-wave is settled.
 
-In this mode, a sub-agent's patch-ready output is an intermediate deliverable. The task is complete only after the main agent applies and verifies it in the shared working tree.
+In this mode, a sub-agent's patch-ready output is an intermediate deliverable. After the main agent applies and verifies the patch in the shared working tree, dispatch a reviewer sub-agent to independently verify the applied diff before settling the task.
 
 ## Worktree-Parallel Execution
 
@@ -114,6 +114,8 @@ This mode preserves the user's desire to avoid worktrees/branches while still al
 
 ## Per-Task Rules
 
+All implementation tasks in Phase 3 must be dispatched to sub-agents. The main agent must not directly edit code, test, or configuration files during execution; its role is coordination, dispatch, verification, and progress tracking only.
+
 Each executing agent must:
 
 - use `superpowers:test-driven-development` when available; otherwise equivalent local TDD fallback. This applies to lightweight and medium/heavy implementation work.
@@ -134,7 +136,7 @@ Before claiming a task, batch, or full workflow is complete, use `superpowers:ve
 
 When tasks are dispatched to sub-agents (worktree-parallel or shared-working-tree serial mode), the main agent must dispatch a reviewer sub-agent after each implementing sub-agent reports `final_success`, before the task is considered settled.
 
-**When to skip:** patch mode (main agent applies all patches directly); read-only exploration tasks; tasks with `reviewer: skip` and an accepted justification recorded in `task-orchestration.md`.
+**When to skip:** read-only exploration tasks; tasks with `reviewer: skip` and an accepted justification recorded in `task-orchestration.md`. The reviewer applies to all three execution modes including patch mode.
 
 ### Reviewer Dispatch
 

@@ -25,7 +25,8 @@
   "scripts": {
     "doctor": "node bin/dev-flow.mjs doctor --target .",
     "dry-run:global": "node bin/dev-flow.mjs install --global --dry-run",
-    "dry-run:local": "node bin/dev-flow.mjs install --target . --dry-run"
+    "dry-run:local": "node bin/dev-flow.mjs install --target . --dry-run",
+    "update:all": "node bin/dev-flow.mjs update --global && node bin/dev-flow.mjs update-codex && node bin/dev-flow.mjs update-claude"
   },
   "keywords": [
     "opencode",

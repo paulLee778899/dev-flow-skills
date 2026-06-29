@@ -57,6 +57,11 @@ const staleSingleCheckerScorePatterns = [
   { pattern: 'final_independent_checker_scores:', reason: 'loop eval schema changed to final_checker_score' },
   { pattern: 'final_independent_checker_count:', reason: 'loop eval schema changed to final_checker_score; count field removed' },
 ];
+const planningStaleCheckerPhrasePatterns = [
+  { pattern: 'independent checker scores/count', reason: 'planning gates use single checker_score; scores/count is stale multi-checker language' },
+  { pattern: 'independent orchestration checker scores/count', reason: 'task orchestration gate uses single checker_score; scores/count is stale multi-checker language' },
+  { pattern: 'at least 2 independent checker subagents', reason: 'planning gates require 1 checker subagent; 2 checkers applies only to acceptance/completion gates' },
+];
 const loopTerminologyForbiddenPatterns = [
   { pattern: 'test design docs', reason: 'fourth baseline doc must be test plan (`test-plan.md`)' },
   { pattern: 'requirements, high-level design, detailed design, and test design', reason: 'use test plan (`test-plan.md`) as the fourth doc' },
@@ -239,7 +244,7 @@ const governanceSemanticChecks = [
       'TDD evidence requirement',
       'OpenSpec/opsx baseline artifacts',
     ],
-    forbidden: [...loopTerminologyForbiddenPatterns, ...staleSingleCheckerScorePatterns],
+    forbidden: [...loopTerminologyForbiddenPatterns, ...staleSingleCheckerScorePatterns, ...planningStaleCheckerPhrasePatterns],
   },
   {
     skill: 'dev-flow-execution',

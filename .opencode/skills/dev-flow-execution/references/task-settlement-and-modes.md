@@ -37,7 +37,7 @@ Never treat these as final failure by themselves:
 Result collection:
 
 - wait for every dispatched task in the sub-wave to settle before judging the sub-wave
-- in worktree-parallel or shared-working-tree serial mode, `final_success` from the implementing sub-agent is preliminary — the task is not settled until the reviewer approves (see § Per-Task Reviewer Protocol)
+- in worktree-parallel or shared-working-tree serial mode, `final_success` from the implementing sub-agent is preliminary — the task is not settled until the reviewer approves (see § Per-Task Reviewer Protocol); in patch mode, reviewer is dispatched after the main agent applies and verifies the patch (no `final_success` at that stage; trigger is post-apply verification)
 - verify final done signal against `task-orchestration.md` and Executable Test Matrix
 - verify changed files and symbols against the task's allowed scope and parallel-safety declaration
 - if `final_success` has incomplete evidence, request evidence from the same task context if possible before marking failed

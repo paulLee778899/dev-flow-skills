@@ -52,7 +52,15 @@ Update to the latest version:
 
 ```bash
 npm install -g dev-flow-skills@latest
-dev-flow update --global
+npm run update:all        # updates OpenCode, Codex, and Claude Code in one step
+```
+
+Or update individual platforms:
+
+```bash
+dev-flow update --global  # OpenCode only
+dev-flow update-codex     # Codex only
+dev-flow update-claude    # Claude Code only
 ```
 
 Check the install:

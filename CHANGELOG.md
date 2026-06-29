@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.23] - 2026-06-29
+
+### Changed
+- Extend Language Policy in all 14 dev-flow skill SKILL.md files: generated artifact documents (requirements, design, specs, CLI specs, test plans, delivery reports, and other persisted Markdown files) must now be written in Chinese, not only user-facing chat replies.
+- Add Language Policy section to `tk8620-firmware-adapter/SKILL.md` and `tk8620-firmware-workflow/SKILL.md`, which previously had no language policy at all.
+
 ## [0.1.22] - 2026-06-29
 
 ### Changed

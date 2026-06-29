@@ -1,44 +1,57 @@
 # Windows TK8620 Firmware Workflow
 
+Use this reference when the current host is Windows.
+
 ## Table of Contents
 
-- [Toolchain](#toolchain)
-- [Build](#build)
-- [Ports](#ports)
-- [Burn And Serial](#burn-and-serial)
-- [Common Failures](#common-failures)
+- Current Project Checks
+- Toolchain
+- Build
+- Ports
+- Burn And Serial
+- Common Failures
 
-Use this reference when the current host is Windows.
+## Current Project Checks
+
+From project root:
+
+```powershell
+Test-Path tools\compile_burn\workflow\workflow.py
+py -3 -m tools.compile_burn.workflow.workflow --help
+```
+
+For rewrite validation, also verify the active target:
+
+```powershell
+Test-Path <target_source_directory>\build.py
+```
 
 ## Toolchain
 
-First read the repository's declared toolchain version. The TK8620 SDK often bundles Windows PE tools under the firmware build tree:
+Prefer the active target project's declared or bundled compiler. Find and verify the target toolchain before falling back to baseline comparison paths:
+
+```powershell
+Get-ChildItem -Path <target_source_directory> -Recurse -Filter riscv-nuclei-elf-gcc.exe -ErrorAction SilentlyContinue |
+  Select-Object -First 5 FullName
+```
+
+If the target source declares a toolchain path or prefix, verify that exact compiler:
+
+```powershell
+& "<target_toolchain>\riscv-nuclei-elf-gcc.exe" --version
+```
+
+Baseline compiler paths may be used only for baseline comparison:
 
 ```text
-SDK_ROOT\Compile_burn\tk8620_soc\toolchain\gcc\bin\
-SDK_ROOT\Compile_burn\tk8620_bootloader\toolchain\gcc\bin\
+source_projects\sdk2_baseline\toolchain\gcc\bin\
+source_projects\bootloader_baseline\toolchain\gcc\bin\
 ```
 
-Prefer the bundled compiler when it exists. Do not silently replace it with another RISC-V compiler. If the bundled compiler is missing, use the project's release package or documented toolchain source; label any other compiler as non-equivalent unless the user accepts that difference.
-
-Find the SDK root from PowerShell:
+Baseline comparison verification:
 
 ```powershell
-$CompileBurn = Get-ChildItem -Path . -Directory -Recurse -Filter Compile_burn | Select-Object -First 1
-if (-not $CompileBurn) { throw "Compile_burn not found" }
-$SdkRoot = Split-Path -Parent $CompileBurn.FullName
-```
-
-Verify the bundled compiler:
-
-```powershell
-& "$SdkRoot\Compile_burn\tk8620_soc\toolchain\gcc\bin\riscv-nuclei-elf-gcc.exe" --version
-```
-
-If the compiler is already on `PATH`, this is also acceptable:
-
-```bat
-riscv-nuclei-elf-gcc --version
+& "source_projects\sdk2_baseline\toolchain\gcc\bin\riscv-nuclei-elf-gcc.exe" --version
 ```
 
 Expected family:
@@ -47,37 +60,38 @@ Expected family:
 riscv-nuclei-elf-gcc (GCC) 9.2.0
 ```
 
-If the compiler is not on `PATH`, use the repository build script first before inventing manual commands. Many Windows SDK layouts add the bundled toolchain path internally.
+Do not silently replace the compiler with another RISC-V toolchain.
 
 ## Build
 
-From the SDK firmware build directory, prefer the existing Python build entry:
+Preferred rewrite target command:
 
 ```powershell
-Set-Location "$SdkRoot\Compile_burn\tk8620_soc"
-py -3 build.py build -j 8
+py -3 <target_source_directory>\build.py build -j 8
 ```
 
-For bootloader builds:
+For baseline comparison, copy the source baseline or bootloader baseline to a temporary directory first, then build the copy:
 
 ```powershell
-Set-Location "$SdkRoot\Compile_burn\tk8620_bootloader"
-py -3 build.py build -j 8
+Test-Path source_projects\sdk2_baseline\build.py
+Test-Path source_projects\bootloader_baseline\build.py
+py -3 <temporary_baseline_copy>\build.py build -j 8
+py -3 <temporary_bootloader_copy>\build.py -j 8
 ```
 
-If the project uses Make directly, preserve the repository's toolchain prefix and path separator conventions. Do not replace the bundled compiler with another RISC-V compiler unless the user explicitly asks for a non-equivalent diagnostic build.
-
-Collect the build artifacts after a successful link:
+Collect artifacts:
 
 ```powershell
-Get-ChildItem -Path "$SdkRoot" -Recurse -Include *.elf,*.hex,*.bin,*.map |
+Get-ChildItem -Path <target_source_directory> -Recurse -Include *.elf,*.hex,*.bin,*.map |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 20 FullName,Length,LastWriteTime
 ```
 
+For baseline comparison, collect artifacts from the temporary baseline copy, not from source baseline/reference directories. Do not build, clean, or generate files in place inside source baseline/reference directories.
+
 ## Ports
 
-Windows serial ports usually look like:
+Windows ports usually look like:
 
 ```text
 COM3
@@ -85,34 +99,43 @@ COM4
 COM5
 ```
 
-Use Python's detailed port listing before choosing target/control roles:
+List details:
 
 ```powershell
-py -3 -m pip install pyserial
 py -3 -m serial.tools.list_ports -v
 ```
 
-Use the burn/serial reference before flashing.
+If `pyserial` is missing, prefer a project-local virtual environment. Any `pip install` that changes the host Python environment must be preauthorized in the automation envelope or handled as manual remediation. In unattended mode, missing host-mutation authorization is `blocked`.
+
+Do not guess target/control roles.
 
 ## Burn And Serial
 
-Run burn scripts from `Compile_burn` after applying the artifact trust gate from `references/burn-and-serial.md`.
+Use `references/burn-and-serial.md` before flashing.
+
+Windows command variants:
 
 ```powershell
-Set-Location "$SdkRoot\Compile_burn"
-py -3 -m py_tool.burn_8620_cli --help
-$TargetPort = "COM5"
-$ControlPort = "COM4"
-$AppHex = "path\to\app.hex"
-Get-FileHash -Algorithm SHA256 $AppHex
-py -3 -m py_tool.burn_8620_cli $TargetPort --work $AppHex --ctrl-port $ControlPort
+py -3 <target_source_directory>\build.py build -j 8
+py -3 -m tools.compile_burn.burn_tool.burn_8620_cli --help
 ```
 
-Use the full-image command with a bootloader path only when the bootloader decision rules require it and the user confirms the higher-risk operation.
+```powershell
+py -3 -m tools.compile_burn.workflow.workflow `
+  --port COM5 `
+  --ctrl-port COM4 `
+  --source-dir source_projects\rewrite_<project-id> `
+  --work build\app.hex `
+  --evidence-out <diagnostic-evidence-dir>\<run-id>.json `
+  --serial-log <diagnostic-evidence-dir>\<run-id>.log
+```
+
+Use the workflow command only after applying `references/burn-and-serial.md` and `references/flash-gate.md`. For application-only flashing with no serial capture, add `--no-console` and omit `--serial-log`.
 
 ## Common Failures
 
-- `riscv-nuclei-elf-gcc` not found: confirm the bundled `toolchain/gcc/bin` path or run through the SDK build script.
-- Python not found: install Python 3 or use the Python configured by the SDK environment. Prefer Python 3.10+ for burn tools when script syntax is unknown.
-- Linker region overflow: keep the `.map` and linker log; do not claim burnable `.hex/.bin` if the link failed.
-- Multiple COM ports: do not guess. Ask the user to unplug/replug target and control boards and compare `serial.tools.list_ports -v` output.
+- Compiler not found: confirm bundled `toolchain\gcc\bin`.
+- Python not found: install Python 3 or use SDK-provided Python.
+- Burn tool import failure: verify `tools\compile_burn\burn_tool` files exist.
+- Linker region overflow: keep `.map` and build logs.
+- Multiple COM ports: in unattended mode return `blocked` with observed COM ports and missing role; in manual diagnostic mode request unplug/replug identification.

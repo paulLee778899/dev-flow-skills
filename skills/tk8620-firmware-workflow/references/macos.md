@@ -1,22 +1,35 @@
 # macOS TK8620 Firmware Workflow
 
+Use this reference when the current host is macOS.
+
 ## Table of Contents
 
-- [Strategy](#strategy)
-- [Docker Check](#docker-check)
-- [Toolchain Acquisition](#toolchain-acquisition)
-- [Container Setup](#container-setup)
-- [Build](#build)
-- [Serial And Burn](#serial-and-burn)
-- [Common Failures](#common-failures)
-
-Use this reference when the current host is macOS.
+- Strategy
+- Current Project Checks
+- Docker Check
+- Toolchain
+- Container Build
+- Burn And Serial
+- Common Failures
 
 ## Strategy
 
-Do not execute the bundled Windows `.exe` compiler on macOS. First read the repository's declared toolchain version. If the SDK matches the known TK8620 Nuclei 2020.08 / GCC 9.2.0 flow, or if no version is declared and the user accepts this fallback, use Docker `linux/amd64` with the Linux64 Nuclei toolchain.
+Do not execute bundled Windows compilers on macOS. Prefer Docker `linux/amd64` for firmware builds when the repository toolchain is Linux/Windows specific. Flashing and serial monitoring usually run directly on macOS after artifacts are produced.
 
-Native macOS RISC-V GCC builds can be used for diagnostics only; do not treat them as final burnable verification unless the user explicitly accepts the toolchain difference.
+## Current Project Checks
+
+From project root:
+
+```bash
+test -f tools/compile_burn/workflow/workflow.py
+python3 -m tools.compile_burn.workflow.workflow --help
+```
+
+For rewrite validation, also verify the active target:
+
+```bash
+test -f <target_source_directory>/build.py
+```
 
 ## Docker Check
 
@@ -25,127 +38,80 @@ docker version
 docker run --platform linux/amd64 --rm ubuntu:22.04 uname -m
 ```
 
-Expected container architecture:
+Expected:
 
 ```text
 x86_64
 ```
 
-If Docker Desktop refuses to mount `/Volumes/...`, copy the project and toolchain into a temporary container with `docker cp`, run the build there, and copy logs/artifacts back.
+If Docker cannot mount `/Volumes/...`, use `docker cp` into a temporary container and copy artifacts/logs back.
 
-## Toolchain Acquisition
+## Toolchain
 
-Preferred team distribution:
-
-1. Store the verified Nuclei 2020.08 Linux64 archive in an internal artifact store or release asset.
-2. Publish its size, SHA-256, and expected extracted path.
-3. Ask developers to extract it under the project root as `.toolchains/nuclei-2020.08-linux64/`.
-4. Do not commit the expanded toolchain to source control.
-
-Verified archive details:
+Use the active target project's declared toolchain if available. If the project matches the known Nuclei 2020.08 / GCC 9.2.0 flow and the user accepts the fallback, use a verified Linux64 Nuclei toolchain under:
 
 ```text
-file: nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-size: 106162516 bytes
-sha256: 398c25b9385b8122d2e864bf71e47b1d871f6c326c21d0ae6d3afd2858f36041
+.toolchains/nuclei-2020.08-linux64/gcc/bin/riscv-nuclei-elf-gcc
 ```
 
-Public fallback URL:
-
-```text
-https://download.nucleisys.com/upload/files/toolchain/gcc/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-```
-
-Setup from the project root:
+Verify:
 
 ```bash
-mkdir -p .toolchains/downloads .toolchains/nuclei-2020.08-linux64
-curl -L -o .toolchains/downloads/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2 \
-  https://download.nucleisys.com/upload/files/toolchain/gcc/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-shasum -a 256 .toolchains/downloads/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-printf '%s  %s\n' \
-  398c25b9385b8122d2e864bf71e47b1d871f6c326c21d0ae6d3afd2858f36041 \
-  .toolchains/downloads/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2 | shasum -a 256 -c -
-tar -xjf .toolchains/downloads/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2 \
-  -C .toolchains/nuclei-2020.08-linux64 --strip-components=1
+.toolchains/nuclei-2020.08-linux64/gcc/bin/riscv-nuclei-elf-gcc --version
 ```
 
-## Container Setup
+Do not treat a non-equivalent toolchain as release evidence unless the user accepts that difference.
 
-Bind-mount flow when Docker can access the project path:
+## Container Build
 
-```bash
-docker run --platform linux/amd64 --rm -it \
-  -v "$PWD":/work -w /work ubuntu:22.04 bash
-```
-
-If Docker cannot mount the project path, use a temporary container and `docker cp`:
-
-```bash
-CONTAINER=tk8620-build
-docker create --platform linux/amd64 --name "$CONTAINER" -it ubuntu:22.04 bash
-docker cp "$PWD" "$CONTAINER":/work
-docker start -ai "$CONTAINER"
-# after building in another terminal:
-docker cp "$CONTAINER":/work/path/to/artifacts ./artifacts
-docker rm "$CONTAINER"
-```
-
-Inside the container:
+Inside a temporary amd64 Linux container, build the active rewrite target. Container package installation is allowed only inside that disposable container and must be recorded in the build log:
 
 ```bash
 apt-get update
-apt-get install -y make python3
+apt-get install -y make python3 file binutils
 ln -sf /usr/bin/python3 /usr/local/bin/python
 export TOOLCHAIN=/work/.toolchains/nuclei-2020.08-linux64/gcc/bin
 export PATH_SEPARATOR=:
 export TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-"
+python3 <target_source_directory>/build.py build -j 8
 ```
 
-Verify inside the amd64 container:
+Collect `.elf`, `.hex`, `.bin`, `.map`, and logs from `<target_source_directory>` and its build output directories. Verify target artifacts with the target toolchain whenever possible:
 
 ```bash
-"/work/.toolchains/nuclei-2020.08-linux64/gcc/bin/riscv-nuclei-elf-gcc" --version
+"$TOOLCHAIN/riscv-nuclei-elf-readelf" -h <artifact>.elf
+"$TOOLCHAIN/riscv-nuclei-elf-objdump" -f <artifact>.elf
+file <artifact>.elf
+"$TOOLCHAIN/riscv-nuclei-elf-size" <artifact>.elf
 ```
 
-Expected:
+If the project uses a different `riscv*-` prefix, use the matching `readelf`/`objdump`/`size` from that toolchain and record the exact path.
 
-```text
-riscv-nuclei-elf-gcc (GCC) 9.2.0
-```
-
-## Build
-
-Prefer the repository's own build entry. A common SDK layout is:
+For baseline comparison, copy the source baseline or bootloader baseline to a temporary directory first, then build and collect artifacts from the copy:
 
 ```bash
-COMPILE_BURN="$(find /work -maxdepth 3 -type d -name Compile_burn -print -quit)"
-test -n "$COMPILE_BURN" || { echo "Compile_burn not found" >&2; exit 2; }
-SDK_ROOT="${COMPILE_BURN%/Compile_burn}"
-cd "$SDK_ROOT/Compile_burn/tk8620_soc"
-PATH_SEPARATOR=: TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-" python3 build.py build -j 8
+test -f source_projects/sdk2_baseline/build.py
+test -f source_projects/bootloader_baseline/build.py
+python3 <temporary_baseline_copy>/build.py build -j 8
+python3 <temporary_bootloader_copy>/build.py -j 8
 ```
 
-For Make-based targets:
+Do not build, clean, or generate files in place inside source baseline/reference directories.
 
-```bash
-PATH_SEPARATOR=: make -j4 TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-"
-```
+## Burn And Serial
 
-## Serial And Burn
-
-Compilation runs in Docker, but flashing and serial monitoring can run directly on macOS. Port names usually look like:
+macOS port examples:
 
 ```text
 /dev/tty.usbserial-*
 /dev/tty.usbmodem*
 ```
 
-Use the burn/serial reference before flashing.
+Use `references/burn-and-serial.md` before flashing.
 
 ## Common Failures
 
-- Container cannot mount `/Volumes/...`: use `docker cp`.
-- `python` missing: install Python 3 and create `python -> python3` inside the container.
-- Linux build sees `._*` files copied from macOS: remove AppleDouble files in the temporary container copy.
-- Case mismatch such as `scripts/` vs `Scripts/`: fix only in the temporary container copy unless the user asks to change the repository.
+- Docker cannot mount `/Volumes/...`: use `docker cp`.
+- `python` missing in container: install Python 3 and symlink `python`.
+- Linux build sees AppleDouble `._*` files: remove them in the temporary container copy.
+- Toolchain architecture mismatch: use amd64 Docker.

@@ -1,134 +1,73 @@
 # TK8620 Burn And Serial
 
+Use this reference before flashing hardware or opening a serial console. Do not use it to define host-specific setup; load the relevant host reference for OS command variants.
+
 ## Table of Contents
 
-- [Dependencies](#dependencies)
-- [Find Build Directory](#find-build-directory)
-- [Artifact Trust Gate](#artifact-trust-gate)
-- [Port Identification](#port-identification)
-- [Hardware Mode](#hardware-mode)
-- [Burn](#burn)
-- [Serial Console](#serial-console)
-- [Safety Notes](#safety-notes)
-
-Use this reference before flashing hardware or opening a serial console.
+- Dependencies
+- Script Checks
+- Port Identification
+- Unattended Mode
+- Hardware Mode
+- Artifact Trust Gate
+- Command Shape
+- Serial Console
 
 ## Dependencies
 
-Verify Python before using the burn scripts. Some SDK burn tools require Python 3.10+ syntax.
+Verify Python and pyserial without mutating the host when possible:
 
 ```bash
 python3 --version
-python3 -m pip install pyserial
+python3 -c "import serial; print(serial.__version__)"
 ```
 
-On Windows, use whichever launcher is available:
+Windows:
 
 ```powershell
 py -3 --version
-py -3 -m pip install pyserial
+py -3 -c "import serial; print(serial.__version__)"
 ```
 
-Common SDK entrypoints include:
+If `pyserial` is missing, prefer a project-local virtual environment. Any `pip install` that changes the host Python environment must be preauthorized in the automation envelope or handled as manual remediation. In unattended mode, missing host-mutation authorization is `blocked`.
+
+Current-project burn entrypoints:
 
 ```text
-SDK_ROOT/Compile_burn/py_tool/tk8620_burn.py
-SDK_ROOT/Compile_burn/py_tool/burn_8620_cli.py
+tools/compile_burn/burn_tool/burn_8620_cli.py
+tools/compile_burn/burn_tool/tk8620_burn.py
+tools/compile_burn/workflow/workflow.py
 ```
 
-The burn protocol is implemented by these SDK scripts and their adjacent support files, not by the skill itself. These files should be obtained from the same TK8620 SDK/release package as the firmware source. If they do not exist, inspect `py_tool/`, README files, and script `--help`. If no project-maintained burn tool exists, flashing is blocked until the user provides the matching SDK burn tool or official protocol documentation.
+Adjacent protocol files must remain available:
 
-For the observed SDK, the CLI depends on adjacent files such as `crc32_ref.py` and `burnpatch.h`, waits for boot handshake, sends a `TaoLink.` sync token, writes a RAM patch, switches baud rate when supported, erases/writes flash blocks, and verifies CRC. Use this only as troubleshooting context. Do not reimplement or alter the protocol unless the user explicitly asks for burn-tool development.
+```text
+tools/compile_burn/burn_tool/crc32_ref.py
+tools/compile_burn/burn_tool/burnpatch.h
+```
 
-## Find Build Directory
+## Script Checks
 
-POSIX hosts:
+From project root:
 
 ```bash
-COMPILE_BURN="$(find "$PWD" -maxdepth 3 -type d -name Compile_burn -print -quit)"
-test -n "$COMPILE_BURN" || { echo "Compile_burn not found" >&2; exit 2; }
-cd "$COMPILE_BURN"
+python3 -m tools.compile_burn.burn_tool.burn_8620_cli --help
+python3 -m tools.compile_burn.workflow.workflow --help
 ```
 
-Windows PowerShell:
-
-```powershell
-$CompileBurn = Get-ChildItem -Path . -Directory -Recurse -Filter Compile_burn | Select-Object -First 1
-if (-not $CompileBurn) { throw "Compile_burn not found" }
-Set-Location $CompileBurn.FullName
-```
-
-If `Compile_burn` is missing, fetch the default SDK workflow source from the current directory before trying burn commands:
-
-```bash
-git clone ssh://git@192.168.9.78:10022/end_node/tk8620_ai_devkit.git
-```
-
-Windows PowerShell:
-
-```powershell
-git clone ssh://git@192.168.9.78:10022/end_node/tk8620_ai_devkit.git
-```
-
-If cloning fails, report the SSH/network/permission failure and ask the user for access, a local SDK path, or a same-version release archive. Do not continue to burn.
-
-Check script options before relying on examples:
-
-```bash
-python3 -m py_tool.burn_8620_cli --help
-```
-
-Windows PowerShell:
-
-```powershell
-py -3 -m py_tool.burn_8620_cli --help
-```
-
-If `--help` fails because `py_tool` is missing, imports fail, `burnpatch.h` is absent, or Python cannot import local modules, stop and fix the SDK/tooling issue before any hardware action.
-
-## Artifact Trust Gate
-
-Before flashing, report and confirm:
-
-- Application artifact path.
-- Bootloader artifact path only if bootloader flashing is required.
-- Artifact source: current build, approved release package, CI artifact, or user-provided file.
-- Timestamp, build log, commit, or release tag when available.
-- SHA-256 for every file that may be flashed.
-- Matching `.map` and linker script when available.
-- Target board revision, flash size/layout, and whether bootloader/application images must be paired.
-
-POSIX checksum:
-
-```bash
-APP_HEX=path/to/app.hex
-if command -v shasum >/dev/null 2>&1; then
-  shasum -a 256 "$APP_HEX"
-else
-  sha256sum "$APP_HEX"
-fi
-```
-
-Windows PowerShell checksum:
-
-```powershell
-$AppHex = "path\to\app.hex"
-Get-FileHash -Algorithm SHA256 $AppHex
-```
-
-Do not flash if the artifact source is unknown, the link failed, a linker region overflowed, the `.map` shows an out-of-bounds section, or the toolchain is non-equivalent and the user did not accept that difference.
+If imports fail, support files are missing, or help output fails, stop and fix the local burn tool before any hardware action.
 
 ## Port Identification
 
 Never guess target and control ports.
 
-Port examples:
+Common ports:
 
 - Windows: `COM5`, `COM4`
 - macOS: `/dev/tty.usbserial-*`, `/dev/tty.usbmodem*`
 - Linux: `/dev/ttyUSB0`, `/dev/ttyACM0`
 
-List ports with details:
+List detailed ports:
 
 ```bash
 python3 -m serial.tools.list_ports -v
@@ -140,92 +79,99 @@ Windows:
 py -3 -m serial.tools.list_ports -v
 ```
 
-If the port roles are unclear, ask the user to unplug and replug the target board, then the control board, and compare the detailed port list. Prefer stable identifiers such as USB serial number, VID/PID, and description over `/dev/ttyUSB0` order.
+If roles are unclear in an unattended loop, return `blocked` with the observed port list and missing role. Do not guess and do not ask interactively in the middle of the burn/test phase. For a manual diagnostic session, ask the user to unplug and replug the target board, then the control board, and compare port details.
+
+## Unattended Mode
+
+In `unattended_dev_test_loop`, target/control ports, board wiring, boot mode, baud rate, expected smoke patterns, retry count, and stop conditions come from `tk8620_automation_envelope`. The provider should:
+
+1. List ports and match the envelope.
+2. Run the structured workflow wrapper.
+3. Capture bounded serial logs.
+4. Evaluate expected pass/fail patterns.
+5. Return `pass`, `fail`, or `blocked` with evidence.
+
+Do not pause for human confirmation when the command, ports, artifacts, and board assumptions match the envelope and Flash Gate package.
 
 ## Hardware Mode
 
-First determine whether the SDK burn tool expects:
+The current workflow expects a control board for automatic reset/download mode when flashing.
 
-- Single-port burn with manual boot/reset sequence.
-- Dual-port burn with a control board for automatic boot/reset.
-
-For dual-port automatic mode, common wiring is:
+Common wiring:
 
 ```text
-Control board GPIO3 -> target board GPIO7
-Control board GPIO6 -> target board RST
+control board GPIO3 -> target board GPIO7
+control board GPIO6 -> target board RST
 ```
 
-Before flashing, confirm board voltage level, reset control, boot strap/mode setting, board revision, and whether jumpers or switches must be set to download mode.
+Before flashing, verify board voltage level, reset control, boot strap/mode, board revision, and jumper/switch assumptions against the automation envelope or manual Flash Gate package.
 
-## Burn
+## Artifact Trust Gate
 
-Ask for confirmation immediately before flashing a real board.
+Before flashing, verify against the firmware evidence report and Flash Gate package:
 
-Application-only burn, preferred when a trusted bootloader is already present and the tool supports it:
+- Application artifact path and source.
+- Bootloader artifact path and source if bootloader is used.
+- SHA-256 for every flashed file.
+- Matching `.map`, linker script, build log, build command, and build cwd.
+- Target board revision and flash layout assumptions.
+- Whether bootloader/application images must be paired.
+
+Portable checksum:
 
 ```bash
-TARGET_PORT=/dev/tty.usbserial-target
-CONTROL_PORT=/dev/tty.usbserial-control
 APP_HEX=path/to/app.hex
-python3 -m py_tool.burn_8620_cli "$TARGET_PORT" --work "$APP_HEX" --ctrl-port "$CONTROL_PORT"
+python3 - <<'PY' "$APP_HEX"
+import hashlib, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+print(hashlib.sha256(path.read_bytes()).hexdigest(), path)
+PY
 ```
 
-Windows PowerShell:
+Windows checksum:
 
 ```powershell
-$TargetPort = "COM5"
-$ControlPort = "COM4"
 $AppHex = "path\to\app.hex"
-py -3 -m py_tool.burn_8620_cli $TargetPort --work $AppHex --ctrl-port $ControlPort
+Get-FileHash -Algorithm SHA256 $AppHex
 ```
 
-Full image burn, only after the bootloader decision rules in `references/core-workflow.md` say bootloader flashing is required:
+Do not flash rewrite firmware if artifact source is unknown, artifact source is not the current active-target build, linking failed, a linker region overflowed, the `.map` shows out-of-bounds sections, required build/map/log evidence is missing, or the toolchain is non-equivalent without explicit envelope/manual acceptance.
+
+## Command Shape
+
+For gating `flash`, `serial`, `hardware-smoke`, or release evidence, use `tools.compile_burn.workflow.workflow` with structured authorization JSON, or an equivalent maintained wrapper that mechanically checks Flash Gate, artifact hashes, exact command, ports, and artifact-trust block. If no such wrapper exists, hardware actions are limited to `non-gating diagnostic`.
+
+The exact structured authorization flags depend on the current workflow tool. Always run:
 
 ```bash
-TARGET_PORT=/dev/tty.usbserial-target
-CONTROL_PORT=/dev/tty.usbserial-control
-APP_HEX=path/to/app.hex
-BOOT_HEX=path/to/boot.hex
-python3 -m py_tool.burn_8620_cli "$TARGET_PORT" --work "$APP_HEX" --boot "$BOOT_HEX" --ctrl-port "$CONTROL_PORT"
+python3 -m tools.compile_burn.workflow.workflow --help
 ```
 
-Windows PowerShell:
+Then use only documented authorization flags.
 
-```powershell
-$TargetPort = "COM5"
-$ControlPort = "COM4"
-$AppHex = "path\to\app.hex"
-$BootHex = "path\to\boot.hex"
-py -3 -m py_tool.burn_8620_cli $TargetPort --work $AppHex --boot $BootHex --ctrl-port $ControlPort
+### Direct diagnostic path
+
+Use a direct diagnostic command only when the user explicitly asks for a non-gating flash/serial diagnostic or the current tool version has no structured authorization support. Label all resulting output `non-gating diagnostic`; it cannot satisfy gating hardware evidence. In unattended release or phase-test mode, missing structured authorization support is `blocked`.
+
+```bash
+python3 -m tools.compile_burn.workflow.workflow \
+  --port <TARGET_PORT> \
+  --ctrl-port <CONTROL_PORT> \
+  --source-dir source_projects/rewrite_<project-id> \
+  --work <APP_HEX> \
+  --evidence-out <diagnostic-evidence-dir>/<run-id>.json \
+  --serial-log <diagnostic-evidence-dir>/<run-id>.log
 ```
 
-If the tool's `--help` shows different option names, follow the script help and preserve the same safety gates.
+Application path must be explicit for rewrite flashing. Do not rely on workflow auto-selection for release or Flash Gate evidence. For application-only flashing with no gating serial capture, add `--no-console` and omit `--serial-log`. Add `--boot <BOOT_HEX> --allow-boot-flash` only when bootloader flashing has its own envelope/manual hardware authorization and recovery assumption.
 
 ## Serial Console
 
-For monitoring, use a dedicated serial tool or pyserial/minicom/screen. Do not send commands until the user confirms what should be sent.
+Open serial monitoring only when:
 
-macOS example:
+- The user requested monitor-only mode, or
+- Burn completed and the smoke test requires bounded log capture.
 
-```bash
-screen /dev/tty.usbserial-XXXX 115200
-```
+Capture bounded logs with start/end time and port identity. Do not claim functional pass from a log unless expected text or command responses are known.
 
-Linux example:
-
-```bash
-minicom -D /dev/ttyUSB0 -b 115200
-```
-
-Windows examples include PuTTY, Tera Term, or the project's Python serial tool if one exists.
-
-If there is no serial output, do not immediately assume the burn failed. Re-check baud rate, port role, boot mode, reset behavior, and expected firmware banner.
-
-## Safety Notes
-
-- Burning is destructive to target flash. Confirm target/control ports and artifact checksums.
-- Flashing bootloader is higher risk than application-only flashing. Confirm user intent, bootloader file source, and recovery path before doing it.
-- Port names are not stable identifiers, especially on Linux.
-- If multiple serial ports exist, do not guess. Ask the user or list candidates.
-- If a serial port is busy, identify the owning process if possible instead of force-killing it.
+Before serial capture is used as gating evidence, rerun the structured wrapper or reread its structured evidence and verify it matches Flash Gate authorization, artifact hashes, target/control ports, board/wiring assumptions, and current artifact trust block. Monitor-only logs without that structured check must be labeled `non-gating diagnostic`.

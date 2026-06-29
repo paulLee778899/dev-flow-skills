@@ -1,30 +1,34 @@
 # Linux TK8620 Firmware Workflow
 
-## Table of Contents
-
-- [Select Architecture](#select-architecture)
-- [Toolchain](#toolchain)
-- [Environment](#environment)
-- [Build](#build)
-- [Serial And Burn](#serial-and-burn)
-- [Common Failures](#common-failures)
-
 Use this reference when the current host is Linux.
 
-## Select Architecture
+## Table of Contents
 
-Check host architecture:
+- Current Project Checks
+- Toolchain
+- Environment
+- Build
+- Serial And Burn
+- Common Failures
+
+## Current Project Checks
+
+From project root:
 
 ```bash
-uname -m
+test -f tools/compile_burn/workflow/workflow.py
+python3 -m tools.compile_burn.workflow.workflow --help
 ```
 
-- `x86_64`: use the repository-declared Linux toolchain directly. If the repository matches the known Nuclei 2020.08 flow, or has no declared version and the user accepts this fallback, the Nuclei 2020.08 Linux64 toolchain below is the known-compatible fallback.
-- `aarch64` or other ARM Linux: prefer Docker `linux/amd64`, following the same container strategy as macOS.
+For rewrite validation, also verify the active target:
+
+```bash
+test -f <target_source_directory>/build.py
+```
 
 ## Toolchain
 
-Expected project-local path:
+Use the active target project's declared toolchain if available. If the project matches the known Nuclei 2020.08 / GCC 9.2.0 flow and the automation envelope or manual scope accepts the fallback, a project-local Linux64 toolchain can live at:
 
 ```text
 .toolchains/nuclei-2020.08-linux64/gcc/bin/riscv-nuclei-elf-gcc
@@ -36,34 +40,10 @@ Verify:
 .toolchains/nuclei-2020.08-linux64/gcc/bin/riscv-nuclei-elf-gcc --version
 ```
 
-Expected:
+Expected family:
 
 ```text
 riscv-nuclei-elf-gcc (GCC) 9.2.0
-```
-
-If missing, obtain the verified Nuclei 2020.08 Linux64 archive from the team artifact store or the public fallback URL:
-
-```text
-https://download.nucleisys.com/upload/files/toolchain/gcc/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-```
-
-Expected archive details:
-
-```text
-file: nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2
-size: 106162516 bytes
-sha256: 398c25b9385b8122d2e864bf71e47b1d871f6c326c21d0ae6d3afd2858f36041
-```
-
-Extract it under the project root as `.toolchains/nuclei-2020.08-linux64/`.
-
-Verify checksum before extracting. If this check fails, stop and do not use the archive:
-
-```bash
-printf '%s  %s\n' \
-  398c25b9385b8122d2e864bf71e47b1d871f6c326c21d0ae6d3afd2858f36041 \
-  .toolchains/downloads/nuclei_riscv_newlibc_prebuilt_linux64_2020.08.tar.bz2 | sha256sum -c -
 ```
 
 ## Environment
@@ -74,20 +54,16 @@ export PATH_SEPARATOR=:
 export TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-"
 ```
 
-Install host dependencies if needed. Debian/Ubuntu example:
+Host-mutating setup commands require envelope/manual approval before execution. Prefer project-local shims, virtual environments, existing tooling, or containers before changing the host package set or user groups. In unattended mode, missing host-mutation approval is `blocked`; do not ask mid-flow.
+
+Manual host dependency remediation, only after approval:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y make python3
+sudo apt-get install -y make python3 file binutils
 ```
 
-Fedora example:
-
-```bash
-sudo dnf install -y make python3
-```
-
-Provide `python` if the SDK Makefiles require it:
+Provide `python` if Makefiles require it:
 
 ```bash
 mkdir -p /tmp/tk8620-tools
@@ -97,43 +73,61 @@ export PATH="/tmp/tk8620-tools:$PATH"
 
 ## Build
 
-Prefer the repository's own build entry. A common SDK layout is:
+Preferred rewrite target command:
 
 ```bash
-COMPILE_BURN="$(find "$PWD" -maxdepth 3 -type d -name Compile_burn -print -quit)"
-test -n "$COMPILE_BURN" || { echo "Compile_burn not found" >&2; exit 2; }
-SDK_ROOT="${COMPILE_BURN%/Compile_burn}"
-cd "$SDK_ROOT/Compile_burn/tk8620_soc"
-PATH_SEPARATOR=: TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-" python3 build.py build -j 8
+python3 <target_source_directory>/build.py build -j 8
 ```
 
-For Make-based targets:
+For baseline comparison, copy the source baseline or bootloader baseline to a temporary directory first, then build the copy:
+
+```bash
+test -f source_projects/sdk2_baseline/build.py
+test -f source_projects/bootloader_baseline/build.py
+python3 <temporary_baseline_copy>/build.py build -j 8
+python3 <temporary_bootloader_copy>/build.py -j 8
+```
+
+For Make-based diagnostics:
 
 ```bash
 PATH_SEPARATOR=: make -j4 TOOLCHAIN_PREFIX="$TOOLCHAIN/riscv-nuclei-elf-"
 ```
 
+Collect `.elf`, `.hex`, `.bin`, `.map`, and logs from `<target_source_directory>` and its build output directories. Do not build, clean, or generate files in place inside source baseline/reference directories.
+
+Verify target artifacts with the active target toolchain:
+
+```bash
+"$TOOLCHAIN/riscv-nuclei-elf-readelf" -h <artifact>.elf
+"$TOOLCHAIN/riscv-nuclei-elf-objdump" -f <artifact>.elf
+"$TOOLCHAIN/riscv-nuclei-elf-size" <artifact>.elf
+file <artifact>.elf
+```
+
+If the project declares another `riscv*-` prefix, use its matching `readelf`/`objdump`/`size` tools and record exact paths in `build-size-report.md`.
+
 ## Serial And Burn
 
-Linux serial ports usually look like:
+Linux ports usually look like:
 
 ```text
 /dev/ttyUSB0
 /dev/ttyACM0
 ```
 
-The user may need dialout permissions:
+The user may need dialout permissions. Changing groups is host-mutating and must be preauthorized in the automation envelope or presented as a manual remediation step:
 
 ```bash
 groups
 sudo usermod -aG dialout "$USER"
 ```
 
-Group changes usually require a new login session. Use the burn/serial reference before flashing.
+Group changes usually require a new login session. Use `references/burn-and-serial.md` before flashing.
 
 ## Common Failures
 
-- `Permission denied` on serial port: check group membership or use a temporary privileged test only with user approval.
-- `riscv-nuclei-elf-gcc: not found`: verify `TOOLCHAIN_PREFIX` and executable bit.
-- `Exec format error`: the Linux64 toolchain is x86_64; use Docker `linux/amd64` on ARM Linux.
-- Linker region overflow: keep `.map` and link logs; no burnable firmware exists if the link failed.
+- Serial permission denied: check group membership.
+- Compiler not found: verify `TOOLCHAIN_PREFIX`.
+- Exec format error: use an amd64-compatible toolchain or Docker.
+- Linker region overflow: keep `.map` and link logs; no burnable firmware exists if link failed.

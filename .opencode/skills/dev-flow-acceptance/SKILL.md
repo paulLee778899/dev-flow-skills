@@ -13,7 +13,7 @@ Does NOT execute tasks, modify code, or re-enter earlier phases.
 
 ## Language Policy
 
-All user-facing replies in dev-flow are in Chinese.
+All user-facing replies and all generated artifact documents (requirements, design, specs, CLI specs, test plans, delivery reports, and other persisted Markdown files) in dev-flow must be written in Chinese.
 
 Own final acceptance after DAG batches or lightweight opsx/OpenSpec work are complete, deferred, or replanned. Acceptance decides readiness; it does not rely on chat memory or agent self-reporting.
 

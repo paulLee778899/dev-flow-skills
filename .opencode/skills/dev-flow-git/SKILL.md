@@ -26,7 +26,7 @@ This skill owns Git isolation mode selection, branch/worktree lifecycle, integra
 
 ## Language Policy
 
-All user-facing replies in dev-flow are in Chinese.
+All user-facing replies and all generated artifact documents (requirements, design, specs, CLI specs, test plans, delivery reports, and other persisted Markdown files) in dev-flow must be written in Chinese.
 
 ## Required Signal
 

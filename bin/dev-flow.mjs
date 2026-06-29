@@ -428,7 +428,7 @@ const governanceSemanticChecks = [
       'requirements/design/test coverage',
       'Executable Test Matrix',
     ],
-    forbidden: staleSingleCheckerScorePatterns,
+    forbidden: [...staleSingleCheckerScorePatterns, ...planningStaleCheckerPhrasePatterns],
   },
   {
     skill: 'dev-flow-planning',

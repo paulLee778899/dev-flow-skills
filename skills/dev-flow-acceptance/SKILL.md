@@ -23,7 +23,7 @@ Use `superpowers:verification-before-completion` when available before claiming 
 
 - Reconcile persisted artifacts, actual Git/filesystem state, task results, and Runtime Orchestration State.
 - Run final and system-level checks from the Executable Test Matrix, and verify all work against `/opsx:verify <change>` evidence.
-- Use at least 2 independent checker subagents for final requirements/design/test coverage and readiness judgments; the main agent may collect evidence but must not be the only reviewer for pass/fail. Persist scores/count; readiness requires all checker scores ≥ 95 and no P0/P1 finding unless an allowed documentation-only exception applies.
+- Use an independent checker subagent for final requirements/design/test coverage and readiness judgments; the main agent may collect evidence but must not be the only reviewer for pass/fail. Persist the checker score; readiness requires checker score ≥ 95 and no P0/P1 finding unless an allowed documentation-only exception applies.
 - Confirm task local verification evidence, TDD evidence, phase-level OpenSpec/opsx evidence, and canonical Git/patch integration states. Independent CR is user-triggered through `/dev-flow-cr`; loop-authorized phases may feed acceptance evidence to `phase_eval`, which must not call `/dev-flow-cr` or emit `cr_report_ready`.
 - Write `delivery-report.md` for governed work and record readiness evidence for lightweight opsx/OpenSpec work.
 - Report `not-ready` or `ready-for-review` when required evidence is missing; do not claim completion.

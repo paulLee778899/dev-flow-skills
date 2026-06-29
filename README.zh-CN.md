@@ -134,7 +134,6 @@ https://raw.githubusercontent.com/paulLee778899/dev-flow-skills/main/install/age
 | `dev-flow-scheduler` | 已审批 cron/心跳自动化的创建、更新、暂停、恢复、查看和删除 |
 | `dev-flow-acceptance` | 最终验证、质量证据和交付报告 |
 | `dev-flow-cr` | 用户触发的独立验收后代码审查及 CR 报告 |
-
 ## 典型流程
 
 ```text

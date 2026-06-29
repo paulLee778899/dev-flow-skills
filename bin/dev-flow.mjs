@@ -198,7 +198,6 @@ const forbiddenOpenCodeInstallPaths = [
   { pattern: /^node_modules(\/|$)/, reason: 'local dependency directory must not be installed' },
   { pattern: /^package(?:-lock)?\.json$/, reason: 'local dependency manifest must not be installed' },
   { pattern: /^bun\.lock$/, reason: 'local dependency lockfile must not be installed' },
-  { pattern: /^skills\/tk8620-firmware-workflow(\/|$)/, reason: 'OpenCode surface only mirrors core dev-flow skills' },
 ];
 const maxCoreSkillLines = 80;
 const maxSkillLines = 120;
@@ -1261,7 +1260,7 @@ function checkSourceSemantics() {
     {
       label: 'OpenCode install boundary docs',
       filePath: path.join(packageRoot, 'install', 'opencode.md'),
-      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', 'dev-flow-scheduler.md', '.opencode/skills/dev-flow-loop/assets/baseline-templates/', ...loopBaselineTemplateDocPhrases],
+      required: ['core `dev-flow-*`', 'dev-flow-scheduler.md', '.opencode/skills/dev-flow-loop/assets/baseline-templates/', ...loopBaselineTemplateDocPhrases],
       forbidden: [...staleRepositoryPatterns, ...staleLoopBaselineTemplateDocPatterns],
     },
     {
@@ -1279,7 +1278,7 @@ function checkSourceSemantics() {
     {
       label: 'installation model boundary docs',
       filePath: path.join(packageRoot, 'docs', 'installation-model.md'),
-      required: ['core `dev-flow-*`', 'tk8620-firmware-workflow', '/dev-flow-scheduler'],
+      required: ['core `dev-flow-*`', '/dev-flow-scheduler'],
       forbidden: staleRepositoryPatterns,
     },
   ];

@@ -134,7 +134,6 @@ For a longer prompt and platform-specific details, see [`install/agent-install.m
 | `dev-flow-scheduler` | Approved cron/heartbeat automation creation, update, pause, resume, view, and deletion |
 | `dev-flow-acceptance` | Final verification, quality evidence, and delivery report |
 | `dev-flow-cr` | Independent user-triggered post-acceptance code review and CR report |
-
 ## Typical flow
 
 ```text

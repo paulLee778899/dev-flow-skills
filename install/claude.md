@@ -45,7 +45,6 @@ dev-flow doctor-claude
     dev-flow-execution/
     dev-flow-git/
     dev-flow-acceptance/
-    tk8620-firmware-workflow/
 ```
 
 The loop-only baseline templates are installed under `~/.claude/skills/dev-flow-loop/assets/baseline-templates/` as `requirements.md`, `high-level-design.md`, `detailed-design.md`, `test-plan.md`, and `test-cases.xlsx`. `dev-flow-master/templates/` no longer exists and `dev-flow doctor-claude` checks this placement.
@@ -83,7 +82,6 @@ The CLI links each bundled skill directory into `~/.claude/skills/` by default:
 ~/.claude/skills/dev-flow-execution/
 ~/.claude/skills/dev-flow-git/
 ~/.claude/skills/dev-flow-acceptance/
-~/.claude/skills/tk8620-firmware-workflow/
 ```
 
 ## Project-Local Option
@@ -129,5 +127,4 @@ rm ~/.claude/skills/dev-flow-planning
 rm ~/.claude/skills/dev-flow-execution
 rm ~/.claude/skills/dev-flow-git
 rm ~/.claude/skills/dev-flow-acceptance
-rm ~/.claude/skills/tk8620-firmware-workflow
 ```

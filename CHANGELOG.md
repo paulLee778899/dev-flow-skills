@@ -2,11 +2,15 @@
 
 ## [Unreleased]
 
+## [0.1.24] - 2026-06-29
+
+### Removed
+- Remove `tk8620-firmware-adapter` and `tk8620-firmware-workflow` skills and all associated reference files; TK8620 firmware support has been extracted from this package.
+
 ## [0.1.23] - 2026-06-29
 
 ### Changed
 - Extend Language Policy in all 14 dev-flow skill SKILL.md files: generated artifact documents (requirements, design, specs, CLI specs, test plans, delivery reports, and other persisted Markdown files) must now be written in Chinese, not only user-facing chat replies.
-- Add Language Policy section to `tk8620-firmware-adapter/SKILL.md` and `tk8620-firmware-workflow/SKILL.md`, which previously had no language policy at all.
 
 ## [0.1.22] - 2026-06-29
 
@@ -131,7 +135,7 @@
 - Add Claude Code installation support with `install-claude`, `update-claude`, `doctor-claude`, and a Claude `/dev-flow` command.
 - Add trusted npm publishing workflow metadata for the `paulLee778899/dev-flow-skills` repository.
 - Add routing eval prompts in `evals/evals.json`.
-- Add progressive `references/` files for core dev-flow skills and the TK8620 firmware workflow.
+- Add progressive `references/` files for core dev-flow skills.
 
 ### Changed
 

@@ -120,7 +120,7 @@ If the same artifact set fails the Artifact Sufficiency Gate more than **3 times
 
 ### Independent Checker Review Scores
 
-Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn at least 2 independent checker subagents concurrently to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
+Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn a checker subagent to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
 
 Score dimensions:
 
@@ -131,9 +131,9 @@ Score dimensions:
 - test plan coverage, including every likely behavior, edge case, failure mode, TDD entry point, and final system-level verification
 - no unresolved TBD/TODO/contradiction unless explicitly accepted as risk
 
-For loop-only baseline artifacts and medium/heavy OpenSpec baseline artifacts, all checker scores must be at least 95 before asking the user to approve execution. If any score is below 95, revise the artifacts and run another independent checker pass. Stop after 3 checker revision rounds and ask the user to narrow scope, accept a known risk, or pause.
+For loop-only baseline artifacts and medium/heavy OpenSpec baseline artifacts, the checker score must be at least 95 before asking the user to approve execution. If the score is below 95, revise the artifacts and run the checker again. Stop after 3 checker revision rounds and ask the user to narrow scope, accept a known risk, or pause.
 
-Persist checker scores, checker count, checker identities/models when available, raw artifact scope, findings, and revision notes in `dev-flow-state.md` for normal governed planning, or in the loop baseline artifact for loop-owned docs.
+Persist the checker score, checker identity/model when available, raw artifact scope, findings, and revision notes in `dev-flow-state.md` for normal governed planning, or in the loop baseline artifact for loop-owned docs.
 
 ### Diagram Governance
 
@@ -149,4 +149,4 @@ For formal product/system OpenSpec artifacts, diagrams are governed assets. Use 
 
 ### OpenSpec Baseline Signal
 
-Emit and persist `openspec_artifact_ready` with: OpenSpec change path, generated artifact list, artifact variant, review mode, `independent_checker_scores`, `independent_checker_count`, checker findings path or summary, unresolved/accepted risks, OpenSpec Baseline Gate readiness, and the `dev-flow-state.md` path. In loop-authorized phase mode, also include the loop artifact directory, all five loop baseline artifact paths including `test-cases.xlsx`, and `phase-artifacts.md` or `opsx-index.md` path, while keeping the canonical OpenSpec change path outside the loop directory.
+Emit and persist `openspec_artifact_ready` with: OpenSpec change path, generated artifact list, artifact variant, review mode, `checker_score`, checker findings path or summary, unresolved/accepted risks, OpenSpec Baseline Gate readiness, and the `dev-flow-state.md` path. In loop-authorized phase mode, also include the loop artifact directory, all five loop baseline artifact paths including `test-cases.xlsx`, and `phase-artifacts.md` or `opsx-index.md` path, while keeping the canonical OpenSpec change path outside the loop directory.

@@ -27,8 +27,8 @@ Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed art
 | `intent_decided` | `dev-flow-intent` | task type, secondary types, confidence, evidence, risk flags, recommended route, required protocols |
 | `routing_decided` | `dev-flow-master` | intent result, classification, key dimensions, chosen path, next owner, next stage |
 | `documentation_start_approved` | `dev-flow-planning` | user confirmed OpenSpec/opsx artifact drafting or update should begin, clarification answers or accepted unknowns, review mode |
-| `openspec_artifact_ready` | `dev-flow-planning` or focused route owner | OpenSpec change ID/path, schema, generated artifact list, requirement/design/task/test evidence, independent checker scores/count, known risks |
-| `task_orchestration_ready` | `dev-flow-planning` | `task-orchestration.md`, DAG/batches, detailed Executable Test Matrix, system-level checks, independent checker scores/count, automation readiness result |
+| `openspec_artifact_ready` | `dev-flow-planning` or focused route owner | OpenSpec change ID/path, schema, generated artifact list, requirement/design/task/test evidence, checker score, known risks |
+| `task_orchestration_ready` | `dev-flow-planning` | `task-orchestration.md`, DAG/batches, detailed Executable Test Matrix, system-level checks, checker score, automation readiness result |
 | `lightweight_artifact_ready` | `dev-flow-master` or focused route owner | alias for lightweight `openspec_artifact_ready`; OpenSpec change ID/path, schema, generated artifact list, required apply artifacts, and `/opsx:ff` or `/opsx:continue` status |
 | `opsx_apply_complete` | focused route owner or main agent | applied tasks, implementation status, changed files, task checkbox state, and Git/patch state |
 | `opsx_verify_complete` | focused route owner or main agent | `/opsx:verify <change>` output, skipped checks with reasons, unresolved risks, and readiness recommendation |
@@ -114,7 +114,7 @@ Gate rules:
 
 - Do not enter governed planning without `routing_decided` choosing the governed path.
 - Do not draft or update OpenSpec/opsx baseline artifacts without `documentation_start_approved`.
-- Do not present OpenSpec Baseline Gate as ready without `openspec_artifact_ready`, `independent_checker_count >= 2`, and all independent checker scores >= 95 for medium/heavy work. **Loop-authorized exception:** when all five loop-authorized phase mode conditions are met (see `references/routing-and-complexity.md § Loop-Authorized Phase Mode`), the Execution Envelope Gate approval covers user consent for phases inside the confirmed baseline. Do not re-prompt the user for a separate OpenSpec Baseline Gate approval; record `loop_authorized: true`, the `loop_id`, and the `loop_baseline_ready` + `loop_envelope_ready` signal paths in `dev-flow-state.md`, then proceed.
+- Do not present OpenSpec Baseline Gate as ready without `openspec_artifact_ready` and `checker_score >= 95` for medium/heavy work. **Loop-authorized exception:** when all five loop-authorized phase mode conditions are met (see `references/routing-and-complexity.md § Loop-Authorized Phase Mode`), the Execution Envelope Gate approval covers user consent for phases inside the confirmed baseline. Do not re-prompt the user for a separate OpenSpec Baseline Gate approval; record `loop_authorized: true`, the `loop_id`, and the `loop_baseline_ready` + `loop_envelope_ready` signal paths in `dev-flow-state.md`, then proceed.
 - Do not present Phase 2 Gate as ready without `task_orchestration_ready` and `git_safe`. **Loop-authorized exception:** same five conditions as above — do not re-prompt for a separate Phase 2 Gate approval; record the same `loop_authorized` fields in `dev-flow-state.md` and proceed.
 - Do not execute code/config/test/user-visible changes until `openspec_artifact_ready` or `lightweight_artifact_ready` records the OpenSpec/opsx change context.
 - Do not accept lightweight work until `opsx_apply_complete` and `opsx_verify_complete` are recorded.
@@ -135,11 +135,12 @@ If a signal is missing, stale, or contradicted by actual Git/filesystem/task sta
 | Planning path selection | Main agent | No | Master internal routing |
 | Review-mode decision | Main agent + user | No | `dev-flow-planning` |
 | Brainstorming handoff | Main agent coordinating brainstorming | Yes, only through required brainstorming path | `dev-flow-planning` |
-| OpenSpec/opsx artifacts | Main agent | Yes for independent checkers only | `dev-flow-planning`; must persist artifacts |
-| OpenSpec Baseline Gate | Main agent + independent checkers + user | Yes, at least 2 checkers required | Mandatory explicit approval |
-| Task orchestration | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-planning`; write DAG/test matrix |
+| OpenSpec/opsx artifacts | Main agent | Yes for checker only | `dev-flow-planning`; must persist artifacts |
+| OpenSpec Baseline Gate | Main agent + checker + user | Yes, a checker required | Mandatory explicit approval |
+| Task orchestration | Main agent + checker | Yes, a checker required | `dev-flow-planning`; write DAG/test matrix |
 | Phase 2 gate | Main agent + user | No | Mandatory explicit approval; resolve Git modes via `dev-flow-git` |
 | Phase 3 execution | Main agent + task agents | Yes | `dev-flow-execution`; task agents implement only assigned scope |
+| Per-task review | Main agent + reviewer sub-agent | Yes | `dev-flow-execution`; reviewer dispatched after implementing sub-agent `final_success` in non-patch modes; see `task-settlement-and-modes.md § Per-Task Reviewer Protocol` |
 | Git operations | Main agent / task agent within approved mode | Yes within task scope | `dev-flow-git`; no unauthorized side effects |
 | Acceptance | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` |
 | Completion gate | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` evidence + checker scores/count + master final decision |
@@ -283,8 +284,7 @@ phase_eval_result:
   loop_id: <matches loop_control_ready.loop_id>
   phase_id: <P-01 | P-02 | ...>
   round: <integer; 1 = first eval, 2+ = repair rounds>
-  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
-  independent_checker_count: <integer, minimum 2>
+  checker_score: <integer>
   quality_threshold: 95
   highest_finding_severity: P0 | P1 | P2 | none
   result: pass | repairable | stop
@@ -301,8 +301,7 @@ loop_eval_result:
   phases_completed: [list of phase_ids]
   phases_repaired: [list of phase_ids or none]
   phases_stopped: [list of phase_ids or none]
-  final_independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
-  final_independent_checker_count: <integer, minimum 2>
+  final_checker_score: <integer>
   highest_finding_severity: P0 | P1 | P2 | none
   result: complete | partial | stopped
   residual_risks: [list or none]

@@ -21,6 +21,8 @@ Own Phase 3 run-to-completion execution after Phase 2 Gate is cleared. Maintain 
 
 Every implementation task, lightweight or heavyweight, must use `superpowers:test-driven-development` when available, or the local equivalent: failing test first, observed RED, minimal GREEN, refactor after green, and recorded evidence. This is a per-task execution rule, not a loop-layer responsibility.
 
+When task sub-agents are dispatched (worktree-parallel or shared-working-tree serial mode), after each implementing sub-agent reports `final_success`, dispatch a reviewer sub-agent to independently verify the task diff and evidence before the task is settled. See `references/task-settlement-and-modes.md § Per-Task Reviewer Protocol`.
+
 ## References
 
 Load `references/runtime-and-dispatch.md` for the run-to-completion loop and agent cap rules. Load `references/task-settlement-and-modes.md` for execution mode rules and settlement protocol. Load `references/replanning-and-recovery.md` for replan and recovery rules.
@@ -34,7 +36,7 @@ Read `references/runtime-and-dispatch.md` before selecting agent cap, sub-waves,
 
 ## Task Settlement
 
-A task is settled only by a final signal: `final_success`, `final_failed`, `final_blocked`, or `cancelled_by_master`. Intermediate test failures, type errors, retries, or conflict telemetry are not final outcomes.
+A task is settled only by a final signal: `final_success`, `final_failed`, `final_blocked`, or `cancelled_by_master`. Intermediate test failures, type errors, retries, or conflict telemetry are not final outcomes. In sub-agent modes, `final_success` from the implementing agent is not yet settled — reviewer approval is required first (see `references/task-settlement-and-modes.md § Per-Task Reviewer Protocol`).
 
 Read `references/task-settlement-and-modes.md` before judging task completion, using shared-worktree patch mode, using shared-working-tree serial agent mode, applying per-task rules, or handling failures.
 

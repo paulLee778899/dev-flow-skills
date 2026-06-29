@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.1.21] - 2026-06-29
+
+### Changed
+- Reduce planning checker requirement from at least 2 independent subagents to 1 checker subagent; update all planning signal schemas (`openspec_artifact_ready`, `task_orchestration_ready`) and loop evaluation schemas (`phase_eval_result`, `loop_eval_result`) from `independent_checker_scores`/`independent_checker_count` arrays to single `checker_score` / `final_checker_score` integer.
+- Update OpenSpec Baseline Gate rule in `state-and-gates.md` from `independent_checker_count >= 2` to `checker_score >= 95`.
+- Update Stage Ownership Matrix planning rows from "at least 2 checkers required" to "a checker required".
+
+### Added
+- Add Per-Task Reviewer Protocol to `dev-flow-execution`: after each implementing sub-agent reports `final_success` in worktree-parallel or shared-working-tree serial modes, dispatch a reviewer sub-agent to independently verify the task diff and evidence before the task is settled.
+- Add `task_reviewer_verdict` signal schema with `spec_verdict`, `quality_verdict`, findings (critical / important / minor), and `cannot_verify_items`.
+- Add `reviewer_blocked` as a new `blocker_type` in `final_blocked` when 3 review-fix rounds are exhausted with critical or important findings remaining.
+- Add Per-task review row to Stage Ownership Matrix in `state-and-gates.md`.
+
 ## [0.1.20] - 2026-06-26
 
 ### Added

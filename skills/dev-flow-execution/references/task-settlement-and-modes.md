@@ -7,6 +7,7 @@
 - [Worktree-Parallel Execution](#worktree-parallel-execution)
 - [Shared-Working-Tree Serial Agent Execution](#shared-working-tree-serial-agent-execution)
 - [Per-Task Rules](#per-task-rules)
+- [Per-Task Reviewer Protocol](#per-task-reviewer-protocol)
 - [Failure Handling](#failure-handling)
 
 ## Terminology
@@ -36,6 +37,7 @@ Never treat these as final failure by themselves:
 Result collection:
 
 - wait for every dispatched task in the sub-wave to settle before judging the sub-wave
+- in worktree-parallel or shared-working-tree serial mode, `final_success` from the implementing sub-agent is preliminary — the task is not settled until the reviewer approves (see § Per-Task Reviewer Protocol)
 - verify final done signal against `task-orchestration.md` and Executable Test Matrix
 - verify changed files and symbols against the task's allowed scope and parallel-safety declaration
 - if `final_success` has incomplete evidence, request evidence from the same task context if possible before marking failed
@@ -128,6 +130,44 @@ Each executing agent must:
 
 Before claiming a task, batch, or full workflow is complete, use `superpowers:verification-before-completion` when available. If unavailable, run the equivalent evidence-before-claim gate: identify the proving command or browser evidence, run it fresh, read the output, and report only what the evidence supports.
 
+## Per-Task Reviewer Protocol
+
+When tasks are dispatched to sub-agents (worktree-parallel or shared-working-tree serial mode), the main agent must dispatch a reviewer sub-agent after each implementing sub-agent reports `final_success`, before the task is considered settled.
+
+**When to skip:** patch mode (main agent applies all patches directly); read-only exploration tasks; tasks with `reviewer: skip` and an accepted justification recorded in `task-orchestration.md`.
+
+### Reviewer Dispatch
+
+Dispatch the reviewer sub-agent with:
+
+- the task spec from `task-orchestration.md`: scope, acceptance criteria, diagnostics, required tests
+- the task diff (`git diff HEAD` in shared-working-tree serial mode; the worktree diff in worktree-parallel mode)
+- TDD evidence and local verification evidence from `final_success`
+- global constraints: cross-task dependency context, OpenSpec acceptance criteria, security and performance rules
+
+Do not pass the implementing agent's self-assessment or expected score.
+
+### Reviewer Verdict
+
+The reviewer returns `task_reviewer_verdict`:
+
+- `spec_verdict`: `passed` | `failed` | `cannot_verify`
+- `quality_verdict`: `approved` | `has_findings`
+- `findings`: list of `{severity: critical | important | minor, description, file_path, line_range}` or empty
+- `cannot_verify_items`: list of items requiring main-agent cross-task resolution
+
+### Resolution Rules
+
+After receiving `task_reviewer_verdict`:
+
+1. **`cannot_verify` items** — the main agent resolves using cross-task knowledge and documents resolution in `progress.md`. These do not block settlement unless the main agent judges them critical.
+2. **Minor findings** — log to `progress.md` as deferred notes. Do not block settlement.
+3. **Critical or Important findings** — dispatch a fix sub-agent (same task scope and worktree/checkout) addressing only the listed findings. After the fix sub-agent reports `final_success`, re-dispatch the reviewer (same protocol). Maximum 3 review-fix rounds total.
+4. **3 rounds exhausted with critical or important findings remaining** — emit `final_blocked` with `blocker_type: reviewer_blocked`, list the unresolved findings, and wait for user decision: accept findings, skip task, or replan.
+5. **Reviewer approves (`quality_verdict: approved`, no critical or important findings)** — task is settled as `final_success`.
+
+Task settlement completes only after reviewer approval or an explicit user decision to accept outstanding findings.
+
 ## Failure Handling
 
 If any task settled with `final_failed` or `final_blocked`:
@@ -182,7 +222,23 @@ final_blocked:
   task_id: <string>
   status: final_blocked
   blocker_description: <one-line description>
-  blocker_type: missing_dependency | permission_denied | scope_conflict | unresolvable_conflict | other
+  blocker_type: missing_dependency | permission_denied | scope_conflict | unresolvable_conflict | reviewer_blocked | other
   changed_files: none
   recommended_action: replan | escalate_to_user | skip
+```
+
+### task_reviewer_verdict Return Schema
+
+```yaml
+task_reviewer_verdict:
+  task_id: <string>
+  round: <integer; 1 = first review, 2+ = re-review after fix>
+  spec_verdict: passed | failed | cannot_verify
+  quality_verdict: approved | has_findings
+  findings:
+    - severity: critical | important | minor
+      description: <one-line description>
+      file_path: <path or none>
+      line_range: <"start:end" or none>
+  cannot_verify_items: [list or none]
 ```

@@ -150,18 +150,18 @@ Ownership rules:
 - If a stage is marked “Main agent,” do not delegate its governance decision to a task sub-agent. Use independent checker subagents only for review/eval; the main agent still owns coordination and user presentation.
 - A task sub-agent may implement only its assigned task; it must not rewrite orchestration, alter gates, or change dependency status.
 - Dynamic replanning is execution-internal and owned by `dev-flow-execution`; it is not a user-facing stage.
-- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by at least 2 independent checker subagents using raw artifacts, not the main agent's conclusion.
+- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by an independent checker subagent using raw artifacts, not the main agent's conclusion. Planning and loop-eval gates require 1 checker subagent; acceptance and completion gates require at least 2 independent checker subagents.
 
 ## Phase Gates
 
 ### OpenSpec Baseline Gate
 
-After `dev-flow-planning` produces or refreshes OpenSpec/opsx baseline artifacts and independent checker scores/count, stop and present:
+After `dev-flow-planning` produces or refreshes OpenSpec/opsx baseline artifacts and checker score, stop and present:
 
 - OpenSpec change path and generated artifact list
 - artifact variant and schema
 - review mode applied
-- independent checker scores/count and findings
+- checker score and findings
 - accepted known risks
 - next step: task orchestration
 
@@ -179,7 +179,7 @@ After `dev-flow-planning` writes `task-orchestration.md` and `dev-flow-git` emit
 - Git isolation mode, integration mode, and writer concurrency limit
 - automation readiness status and blockers
 - detailed test matrix coverage summary, including system-level checks and unresolved test gaps
-- independent orchestration checker scores/count and findings
+- orchestration checker score and findings
 - execution mode, presented in Chinese:
   - `执行方式建议：基于当前 DAG、文件/符号重叠和 Git 安全边界，建议使用 <主线程串行 | 串行 subagent | patch-ready 并发分析 | 用户授权后的并发写入>。不会强制创建 worktree；如建议并发直接写入，需要你明确同意隔离方式。未授权时将使用串行写入或 shared-worktree patch mode。`
 

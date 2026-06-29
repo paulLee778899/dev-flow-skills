@@ -35,7 +35,7 @@ Canonical location is `Docs/<topic>/` or `docs/<topic>/` beside the governed art
 | `git_safe` | `dev-flow-git` | isolation mode, integration mode, permission/capability result, side-effect boundary |
 | `execution_actor_decided` | `dev-flow-master` | proposed execution actor shown at Phase 2 Gate, user approval or override, and writer concurrency boundary |
 | `ui_ux_report` | `dev-flow-ui-ux` | target surface, runtime/browser evidence or blocked reason, interaction/responsive/accessibility result |
-| `review_evidence_ready` | `dev-flow-acceptance` | task local verification evidence, TDD evidence, system-level evidence, requirements/design/test coverage, and independent checker scores/count; independent CR is separate `/dev-flow-cr` evidence. Note: dev-flow-execution may write task-level local verification and TDD artifacts; dev-flow-acceptance aggregates these into the canonical review_evidence_ready signal. Only dev-flow-acceptance may emit the final form. |
+| `review_evidence_ready` | `dev-flow-acceptance` | task local verification evidence, TDD evidence, system-level evidence, requirements/design/test coverage, and checker score; independent CR is separate `/dev-flow-cr` evidence. Note: dev-flow-execution may write task-level local verification and TDD artifacts; dev-flow-acceptance aggregates these into the canonical review_evidence_ready signal. Only dev-flow-acceptance may emit the final form. |
 | `execution_settled` | `dev-flow-execution` | batch/task status, Runtime Orchestration State summary, replan history, test/diagnostic evidence, unresolved blockers |
 | `acceptance_ready` | `dev-flow-acceptance` | final test results, quality evidence, delivery report path, Git/patch states, unresolved follow-ups |
 | `cr_report_ready` | `dev-flow-cr` | cr report file path, overall score, highest severity finding, blocking status (cr_blocked \| cr_passed \| cr_needs_defer_decision), review scope description |
@@ -94,8 +94,7 @@ acceptance_ready:
   quality_evidence_paths: [list of file paths]
   system_level_checks: [list of commands/evidence]
   requirements_design_test_coverage: complete | incomplete | deferred_with_user_approval
-  independent_checker_scores: [<score-checker-1>, <score-checker-2>, ...]
-  independent_checker_count: <integer, minimum 2>
+  checker_score: <integer>
   outstanding_deferred: [list of task ids or none]
 ```
 
@@ -142,15 +141,15 @@ If a signal is missing, stale, or contradicted by actual Git/filesystem/task sta
 | Phase 3 execution | Main agent + task agents | Required | `dev-flow-execution`; main agent coordinates only; all implementation dispatched to task sub-agents |
 | Per-task review | Main agent + reviewer sub-agent | Required | `dev-flow-execution`; reviewer dispatched after every implementing sub-agent in all three execution modes; see `task-settlement-and-modes.md § Per-Task Reviewer Protocol` |
 | Git operations | Main agent / task agent within approved mode | Yes within task scope | `dev-flow-git`; no unauthorized side effects |
-| Acceptance | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` |
-| Completion gate | Main agent + independent checkers | Yes, at least 2 checkers required | `dev-flow-acceptance` evidence + checker scores/count + master final decision |
+| Acceptance | Main agent + checker | Yes, a checker required | `dev-flow-acceptance` |
+| Completion gate | Main agent + checker | Yes, a checker required | `dev-flow-acceptance` evidence + checker score + master final decision |
 
 Ownership rules:
 
 - If a stage is marked “Main agent,” do not delegate its governance decision to a task sub-agent. Use independent checker subagents only for review/eval; the main agent still owns coordination and user presentation.
 - A task sub-agent may implement only its assigned task; it must not rewrite orchestration, alter gates, or change dependency status.
 - Dynamic replanning is execution-internal and owned by `dev-flow-execution`; it is not a user-facing stage.
-- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by an independent checker subagent using raw artifacts, not the main agent's conclusion. Planning and loop-eval gates require 1 checker subagent; acceptance and completion gates require at least 2 independent checker subagents.
+- Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by an independent checker subagent using raw artifacts, not the main agent's conclusion. All gates require 1 checker subagent.
 
 ## Phase Gates
 
@@ -218,7 +217,7 @@ For governed medium/heavy work, the master may report `ready-to-report` only aft
 6. every task uses one canonical Git integration state from `dev-flow-git`: `merged`, `committed`, `pr_opened`, `direct_commit_complete`, `patch_ready`, `shared_working_tree_applied`, `applied_from_shared_worktree_patch`, or `deferred_accepted`
 7. task local verification evidence and TDD evidence exist for integrated work; independent CR is optional and user-triggered through `/dev-flow-cr`
 8. requirements/design/test coverage map is complete or explicitly deferred by the user
-9. independent acceptance checker count is at least 2 and all checker scores are >= 95 with no P0/P1 finding
+9. checker score >= 95 with no P0/P1 finding
 10. applicable quality-gate evidence is recorded, including `ui_ux_report` when `ui_runtime` risk applies
 11. no unresolved blocker remains
 
@@ -232,7 +231,7 @@ For lightweight work, the master may report `ready-to-report` only after `dev-fl
 6. required focused-route evidence exists, including `debugging_report` for debugging work and `ui_ux_report` for UI runtime risk
 7. TDD evidence exists for implementation tasks or an approved exception is recorded
 8. final and system-level checks appropriate to the change pass or are explicitly marked N/A with reason
-9. independent acceptance checker count is at least 2 and all checker scores are >= 95 with no P0/P1 finding, unless the change is documentation-only with no behavior/config/test/user-visible impact
+9. checker score >= 95 with no P0/P1 finding, unless the change is documentation-only with no behavior/config/test/user-visible impact
 10. no unresolved blocker remains
 
 After reporting `ready-to-report`, suggest that the user perform their own acceptance and then run `/dev-flow-cr` for independent post-acceptance code review when they want CR. Do not run CR automatically as part of `/dev-flow`.

@@ -52,7 +52,9 @@ const staleWorkflowPatterns = [
   { pattern: 'self_reviewed', reason: 'baseline status must name independent checker review, not self-review' },
 ];
 const staleSingleCheckerScorePatterns = [
-  { pattern: 'independent_checker_score:', reason: 'use checker_score (singular, no array) for loop signals' },
+  { pattern: 'independent_checker_score:', reason: 'use checker_score (single integer) for all gate schemas' },
+  { pattern: 'independent_checker_scores:', reason: 'all gate schemas now use checker_score; independent_checker_scores array is stale' },
+  { pattern: 'independent_checker_count:', reason: 'all gate schemas now use checker_score; independent_checker_count is stale' },
   { pattern: 'final_independent_checker_score:', reason: 'loop eval schema must use final_checker_score' },
   { pattern: 'final_independent_checker_scores:', reason: 'loop eval schema changed to final_checker_score' },
   { pattern: 'final_independent_checker_count:', reason: 'loop eval schema changed to final_checker_score; count field removed' },
@@ -60,7 +62,7 @@ const staleSingleCheckerScorePatterns = [
 const planningStaleCheckerPhrasePatterns = [
   { pattern: 'independent checker scores/count', reason: 'planning gates use single checker_score; scores/count is stale multi-checker language' },
   { pattern: 'independent orchestration checker scores/count', reason: 'task orchestration gate uses single checker_score; scores/count is stale multi-checker language' },
-  { pattern: 'at least 2 independent checker subagents', reason: 'planning gates require 1 checker subagent; 2 checkers applies only to acceptance/completion gates' },
+  { pattern: 'at least 2 independent checker subagents', reason: 'all gates now require 1 checker subagent; 2 checkers is stale language' },
 ];
 const loopTerminologyForbiddenPatterns = [
   { pattern: 'test design docs', reason: 'fourth baseline doc must be test plan (`test-plan.md`)' },
@@ -421,8 +423,7 @@ const governanceSemanticChecks = [
       'TDD evidence',
       'phase-level OpenSpec/opsx evidence',
       'independent acceptance checker',
-      'independent_checker_scores',
-      'independent_checker_count',
+      'checker_score',
       'system-level checks',
       'requirements/design/test coverage',
       'Executable Test Matrix',

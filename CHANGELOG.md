@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [0.1.22] - 2026-06-29
+
+### Changed
+- Mandate subagent-only implementation in Phase 3: main agent is coordinator only and must not directly edit code, test, or configuration files; all implementation tasks must be dispatched to sub-agents across all three execution modes (worktree-parallel, shared-working-tree serial, shared-worktree patch).
+- Extend Per-Task Reviewer Protocol to all three execution modes including patch mode: after the main agent applies and verifies a patch, a reviewer sub-agent independently verifies the applied diff before settling the task. Previously patch mode was exempt.
+- Reduce acceptance checker from 2 independent checker subagents to 1, unifying all gates (planning, loop-eval, acceptance, completion) to a single checker subagent with `checker_score >= 95`.
+- Update `acceptance_ready` signal schema from `independent_checker_scores` array + `independent_checker_count` to single `checker_score` integer.
+- Update Stage Ownership Matrix: acceptance and completion gate rows changed from "at least 2 checkers required" to "a checker required"; Phase 3 execution and Per-task review rows changed from Yes to Required.
+- Simplify Ownership Rules: "all gates require 1 checker subagent" replaces the prior split between planning (1) and acceptance (2).
+- Extend `planningStaleCheckerPhrasePatterns` forbidden list to acceptance skill so doctor catches natural-language regressions ("at least 2 independent checker subagents", "independent checker scores/count") in acceptance files.
+- Add `independent_checker_scores:` and `independent_checker_count:` to `staleSingleCheckerScorePatterns` (globally forbidden YAML field names across all skills).
+
+### Added
+- Add `reviewer_blocked` as a new `blocker_type` in `final_blocked` for when 3 review-fix rounds are exhausted with critical or important findings remaining.
+- Add Per-task review row to Stage Ownership Matrix in `state-and-gates.md` with Required sub-agent column.
+
 ## [0.1.21] - 2026-06-29
 
 ### Changed

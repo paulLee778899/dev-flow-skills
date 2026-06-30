@@ -120,7 +120,7 @@ If the same artifact set fails the Artifact Sufficiency Gate more than **3 times
 
 ### Independent Checker Review Scores
 
-Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn a checker subagent to review raw artifacts and score the artifact set from 0-100. The main agent must not score its own artifacts for gate passage.
+Before presenting loop-only baseline artifacts or OpenSpec baseline artifacts for user confirmation, spawn a checker subagent to review raw artifacts and score the artifact set from 0-100. This checker is mandatory and preauthorized by the planning gate once the artifacts exist; do not ask the user separately whether to run it. The main agent must not score its own artifacts for gate passage.
 
 Score dimensions:
 

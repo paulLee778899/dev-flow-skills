@@ -23,7 +23,7 @@ Main duties:
 4. Group tasks into execution batches; same-batch tasks have no unmet dependencies and no unresolved high file/symbol overlap risk.
 5. Convert the detailed test plan into concrete per-task, per-batch, final integration, and system-level checks.
 6. Write `Docs/<topic>/task-orchestration.md` or the canonical legacy path.
-7. Run a checker subagent against raw OpenSpec artifacts and `task-orchestration.md`; revise until the checker score is at least 95 or a hard blocker is reached.
+7. Run a checker subagent against raw OpenSpec artifacts and `task-orchestration.md`; this checker is mandatory and preauthorized by the Phase 2 planning gate once orchestration exists, so do not ask the user separately whether to run it. Revise until the checker score is at least 95 or a hard blocker is reached.
 
 ## Loop Phase DAG Versus Task DAG
 

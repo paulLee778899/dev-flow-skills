@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.1.25] - 2026-06-29
+
+### Fixed
+- `dev-flow-loop`: fix stale `auto_continue_scope` drift in `loop-envelope.md`. Execution Envelope Gate approval must update the `auto_continue_scope` field inside `loop-envelope.md` itself (e.g. `disabled` -> `within_confirmed_baseline`), not only the persisted signal in `loop-state.md`; otherwise a resumed session reads the stale pre-approval value from the document and stops to ask after every phase even though the loop was approved for auto-continue. When `loop-state.md` and `loop-envelope.md` disagree, treat `loop-state.md` as authoritative and repair the document.
+
+### Changed
+- `dev-flow-loop`, `dev-flow-master`, `dev-flow-planning`: clarify that required checker subagents (planning, loop baseline, DAG/envelope, phase_eval) are preauthorized once their input artifacts exist — they must be spawned automatically without a separate user prompt, and the main agent must not substitute self-review for a checker score. User approval is still required for the gate decision itself and for side effects.
+
 ## [0.1.24] - 2026-06-29
 
 ### Removed

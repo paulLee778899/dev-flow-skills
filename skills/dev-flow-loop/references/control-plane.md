@@ -108,6 +108,8 @@ openspec/
    - `detailed-design.md` §3.3: `sequenceDiagram` protocol lifecycle — required if protocol design
 4. Run checker review:
    - Spawn a checker subagent to score the full artifact set (requirements, HLD, DDD, test-plan, test-cases.xlsx) from 0–100 against `§Baseline Document Quality Checklist`
+   - This checker is mandatory and preauthorized by the loop gate once the artifacts exist; do not ask the user separately whether to run it
+   - The main agent must not self-score or present Baseline Docs Gate readiness without this checker result
    - Record the score in `loop_baseline_ready.checker_score`; the gate condition is checker score ≥ 95
    - Auto-revise against all findings
    - Repeat until checker score ≥ 95 or a blocker is found
@@ -117,11 +119,13 @@ openspec/
    - Execution Envelope: budget ceiling, stop conditions, side-effect boundaries, `auto_continue_scope`, `max_phase_repair_rounds`, `max_full_loop_passes`, `forbidden_side_effects`
 7. Run checker review on DAG and Envelope:
    - Spawn a checker subagent to score the Loop Phase DAG and Execution Envelope 0–100 against `§DAG and Envelope Quality Checklist`
+   - This checker is mandatory and preauthorized by the loop gate once the DAG/envelope exist; do not ask the user separately whether to run it
+   - The main agent must not self-score or present Execution Envelope Gate readiness without this checker result
    - Record the score in `loop_control_ready.dag_envelope_checker_score`; the gate condition is checker score ≥ 95
    - Auto-revise against all findings
    - Repeat until checker score ≥ 95 or a blocker is found
 8. Present the Loop Phase DAG, `auto_continue_scope`, `dev_flow_phase_handoff`, budgets, stop conditions, and side-effect boundaries — together with the DAG/Envelope checker score — for Execution Envelope Gate approval.
-9. Freeze the baseline only after Baseline Docs Gate and Execution Envelope Gate are both approved.
+9. Freeze the baseline only after Baseline Docs Gate and Execution Envelope Gate are both approved. The moment Execution Envelope Gate is approved, update the `auto_continue_scope` field inside `loop-envelope.md` itself from its pre-approval draft value (e.g. `disabled`) to the approved value (e.g. `within_confirmed_baseline`); do not leave the envelope document holding a stale pre-approval value while only `loop-state.md` records the approved value. A reader of `loop-envelope.md` alone must see the current authorized scope, not a draft note saying what it will become.
 10. For each ready phase, hand off to dev-flow in loop-authorized phase mode:
    - **Before starting implementation**, verify that `openspec_artifact_ready.checker_score ≥ 95` and `task_orchestration_ready.checker_score ≥ 95` are recorded from dev-flow-planning; if either is absent or below threshold, wait for the planning checker to complete before proceeding
    - preserve the loop goal and baseline ID
@@ -132,7 +136,7 @@ openspec/
    - create detailed test coverage for normal, edge, failure, integration, and system-level checks
    - require TDD per implementation task via `superpowers:test-driven-development` when available
    - collect acceptance and system-level evidence
-11. Run checker `phase_eval` after each phase or repair round using a checker subagent; the checker scores phase artifacts from 0–100; record `phase_eval_result.checker_score`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
+11. Run checker `phase_eval` after each phase or repair round using a checker subagent; this checker is mandatory and preauthorized by the loop gate for read-only review of phase evidence. The checker scores phase artifacts from 0–100; record `phase_eval_result.checker_score`. `phase_eval` is not `/dev-flow-cr`, must not emit `cr_report_ready`, and must not use the independent CR report schema.
 12. Decide:
    - continue to next phase only when `phase_eval` checker score ≥ 95, no P0/P1 finding exists, and dependencies are ready
    - run a repair round when issues are inside baseline and budget remains
@@ -301,6 +305,8 @@ A checker subagent scores the Loop Phase DAG and Execution Envelope using this c
 ## Auto-Continue Policy
 
 After Baseline Docs Gate and Execution Envelope Gate are both approved, the loop should auto-continue inside the confirmed baseline. It should not ask after every dev-flow phase gate that is already authorized by the baseline.
+
+When resuming a loop in a new turn or session, treat `loop-state.md`'s persisted `loop_envelope_ready.auto_continue_scope` as authoritative over `loop-envelope.md` if the two ever disagree, and immediately correct `loop-envelope.md` to match the persisted approved value. A disagreement means the envelope document was not updated after gate approval; fix the document rather than silently following its stale value or silently following the state file without repairing the source document.
 
 Auto-continue is allowed when all are true:
 

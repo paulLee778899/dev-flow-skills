@@ -1,7 +1,7 @@
 {
   "name": "dev-flow-skills",
-  "version": "0.1.24",
-  "description": "Governed development-flow skills for AI coding agents with independent CR, Loop Engineering delivery loops, read-only triage, approved scheduler automation, and TK8620 firmware adapters.",
+  "version": "0.1.25",
+  "description": "Governed development-flow skills for AI coding agents with independent CR, Loop Engineering delivery loops, read-only triage, and approved scheduler automation.",
   "author": {
     "name": "paulLee778899",
     "url": "https://github.com/paulLee778899"
@@ -25,15 +25,13 @@
     "triage",
     "scheduler",
     "automation",
-    "workflow",
-    "tk8620",
-    "firmware"
+    "workflow"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Dev Flow Skills",
     "shortDescription": "Governed dev-flow with CR, loops, triage, and scheduler",
-    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, OpenSpec/opsx artifacts, task orchestration, continuous execution, Git safety, final acceptance evidence, independent post-acceptance CR, Loop Engineering delivery loops with Baseline Docs Gate, Execution Envelope Gate, phase DAG control, within-baseline auto-continue, read-only triage, approved cron/heartbeat scheduler management, and TK8620 firmware adapter/test-provider handoffs.",
+    "longDescription": "Use Dev Flow Skills to route development requests by intent, then guide debugging, UI/UX work, review, clarification, OpenSpec/opsx artifacts, task orchestration, continuous execution, Git safety, final acceptance evidence, independent post-acceptance CR, Loop Engineering delivery loops with Baseline Docs Gate, Execution Envelope Gate, phase DAG control, within-baseline auto-continue, read-only triage, and approved cron/heartbeat scheduler management.",
     "developerName": "paulLee778899",
     "category": "Coding",
     "capabilities": [
@@ -48,8 +46,7 @@
       "Use dev-flow-cr to review the current diff after acceptance.",
       "Use dev-flow-triage to build a read-only candidate inbox.",
       "Use dev-flow-loop to design a goal-preserving delivery loop with loop-only baseline artifacts, a phase DAG, and safe auto-continue.",
-      "Use dev-flow-scheduler to create or manage an approved read-only automation.",
-      "Use tk8620-firmware-adapter before generic dev-flow for TK8620 firmware rewrite, trim, port, validation, or release work."
+      "Use dev-flow-scheduler to create or manage an approved read-only automation."
     ],
     "brandColor": "#2563EB",
     "screenshots": []

@@ -24,6 +24,12 @@ Loop Engineering is the outer control plane around dev-flow. It owns target rete
 - Do not start commits, pushes, PRs, merges, worktrees, or paid/external actions automatically.
 - Keep loop state separate from `dev-flow-state.md`; phase-level dev-flow artifacts may reference loop IDs for traceability.
 
+## Checker Subagent Authorization
+
+When this skill requires a checker subagent, the checker is part of the approved dev-flow-loop gate, not a separate optional delegation. Spawn it automatically after the relevant artifacts exist; do not pause to ask whether to run the checker and do not let the main agent self-score gate readiness.
+
+Checker subagents are read-only reviewers unless the active gate explicitly assigns them artifact-writing work. They may inspect raw baseline docs, DAG/envelope files, OpenSpec/opsx artifacts, task orchestration, phase evidence, logs, and reports; they must return findings, P0/P1 blockers, a 0-100 score, and gate readiness. User approval is still required for writing baseline artifacts, freezing the baseline, approving the execution envelope, starting side effects, commits, pushes, PRs, or worktree creation.
+
 ## Language Policy
 
 All user-facing replies and all generated artifact documents (requirements, design, specs, CLI specs, test plans, delivery reports, and other persisted Markdown files) in dev-flow must be written in Chinese.

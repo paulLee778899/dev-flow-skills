@@ -150,6 +150,7 @@ Ownership rules:
 - A task sub-agent may implement only its assigned task; it must not rewrite orchestration, alter gates, or change dependency status.
 - Dynamic replanning is execution-internal and owned by `dev-flow-execution`; it is not a user-facing stage.
 - Any gate-impacting score, pass/fail review, phase_eval, or readiness judgment must be checked by an independent checker subagent using raw artifacts, not the main agent's conclusion. All gates require 1 checker subagent.
+- Required checker subagents are preauthorized read-only reviewers for their gate once the artifacts or evidence they review exist. Spawn them automatically; do not ask the user whether to run the checker and do not present gate readiness from main-agent self-review. User approval is still required for the gate decision itself and for side effects such as artifact writes, implementation, Git operations, worktrees, pushes, PRs, or paid/external actions.
 
 ## Phase Gates
 

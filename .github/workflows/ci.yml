@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Check CLI syntax
         run: |
           node --check bin/dev-flow.mjs
